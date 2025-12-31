@@ -1,9 +1,28 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/gameplay_root_controller.gd" id="1_k1j6r"]
+[ext_resource type="PackedScene" path="res://scenes/gameplay/Room.tscn" id="2_room"]
+[ext_resource type="PackedScene" path="res://scenes/entities/Player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/inventory_ui.tscn" id="4_inventory"]
+[ext_resource type="Script" path="res://scripts/gameplay/ItemSpawner.gd" id="5_spawner"]
+[ext_resource type="Script" path="res://scripts/gameplay/EnemySpawner.gd" id="6_enemy_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/ui/item_pickup_display.tscn" id="7_item_display"]
 
 [node name="GameplayRoot" type="Node"]
 script = ExtResource("1_k1j6r")
+
+[node name="GameplayLayer" type="Node2D" parent="."]
+
+[node name="Room" parent="GameplayLayer" instance=ExtResource("2_room")]
+
+[node name="Player" parent="GameplayLayer" instance=ExtResource("3_player")]
+position = Vector2(0, 0)
+
+[node name="ItemSpawner" type="Node2D" parent="GameplayLayer"]
+script = ExtResource("5_spawner")
+
+[node name="EnemySpawner" type="Node2D" parent="GameplayLayer"]
+script = ExtResource("6_enemy_spawner")
 
 [node name="UILayer" type="CanvasLayer" parent="."]
 
@@ -27,10 +46,25 @@ theme_override_constants/margin_top = 16
 theme_override_constants/separation = 8
 
 [node name="Label" type="Label" parent="UILayer/UI/TopLeft/VBox"]
-text = "Gameplay (stub)"
+text = "Room: 1"
 
 [node name="ReturnButton" type="Button" parent="UILayer/UI/TopLeft/VBox"]
 text = "Return to Hub"
+
+[node name="TopRight" type="MarginContainer" parent="UILayer/UI"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -266.0
+offset_right = 0.0
+offset_bottom = 208.0
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_top = 16
+
+[node name="InventoryUI" parent="UILayer/UI/TopRight" instance=ExtResource("4_inventory")]
+
+[node name="ItemPickupDisplay" parent="UILayer" instance=ExtResource("7_item_display")]
 
 [connection signal="pressed" from="UILayer/UI/TopLeft/VBox/ReturnButton" to="." method="_on_return_to_hub_pressed"]
 

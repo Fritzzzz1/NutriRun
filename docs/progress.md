@@ -32,13 +32,20 @@
 
 ### Next steps (recommended order)
 
-1. **Gameplay foundation**
-   - Create `Room.tscn` + `RoomManager.gd` (spawn a simple arena + return-to-hub trigger)
-   - Add `Player.tscn` + `PlayerController.gd` (movement + health placeholder)
-2. **Nutrition system (vertical slice)**
-   - Add pickup entity + inventory (8 slots) + simple UI display
-   - Implement 1–2 buffs from `assets/data/nutrition_items.json`
-   - Implement basic synergy evaluation from `assets/data/synergies.json`
+1. **Gameplay foundation** ✅
+   - ✅ Created `Room.tscn` + `RoomManager.gd` (simple arena with exit trigger)
+   - ✅ Added `Player.tscn` + `PlayerController.gd` (WASD movement + health system)
+   - ✅ Integrated Room and Player into `gameplay_root` scene
+   - ✅ Player can move around arena and trigger exit to return to hub
+2. **Nutrition system (vertical slice)** ✅
+   - ✅ Created `NutritionPickup.tscn` + `NutritionPickup.gd` (pickup entity with collision detection)
+   - ✅ Created `InventoryManager` autoload (8-slot inventory system)
+   - ✅ Created inventory UI (`inventory_ui.tscn` + `inventory_slot.tscn`) displayed in gameplay scene
+   - ✅ Implemented buff system that applies stat multipliers (damage, speed, max_health) to player
+   - ✅ Implemented synergy evaluation system from `assets/data/synergies.json` (e.g., 3+ fruits → +15% max health)
+   - ✅ Added 4 nutrition items to `nutrition_items.json` (apple, banana, orange, carrot)
+   - ✅ Player stats update dynamically when items are collected/removed
+   - ✅ Test pickups spawn in gameplay rooms for testing
 3. **Horde system (MVP)**
    - `Horde.tscn` + `HordeManager.gd` that spawns 3–5 follower units
    - Simple target acquisition + attack loop

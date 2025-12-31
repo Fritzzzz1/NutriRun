@@ -1,0 +1,46 @@
+## Room manager: handles room state, transitions, and difficulty scaling.
+extends Node2D
+
+signal room_cleared
+signal exit_triggered
+
+var room_number: int = 1
+var is_cleared: bool = false
+
+@onready var exit_trigger: Area2D = $ExitTrigger
+
+
+func _ready() -> void:
+	# Connect exit trigger
+	if exit_trigger:
+		exit_trigger.body_entered.connect(_on_exit_trigger_entered)
+		exit_trigger.area_entered.connect(_on_exit_trigger_entered)
+	
+	EventBus.push_notification("Room %d loaded" % room_number)
+
+
+func initialize(room_num: int) -> void:
+	room_number = room_num
+	is_cleared = false
+	# Future: Apply difficulty scaling based on room_number
+
+
+func _on_exit_trigger_entered(body: Node) -> void:
+	# Only allow exit if room is cleared (or for now, always allow)
+	if body.is_in_group("player"):
+		EventBus.push_notification("Exiting to hub...")
+		exit_triggered.emit()
+		# Return to hub after a short delay
+		await get_tree().create_timer(0.5).timeout
+		EventBus.run_ended.emit()
+		SceneManager.go_to_hub()
+
+
+func clear_room() -> void:
+	if is_cleared:
+		return
+	
+	is_cleared = true
+	room_cleared.emit()
+	EventBus.push_notification("Room %d cleared!" % room_number)
+

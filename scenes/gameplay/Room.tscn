@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/RoomManager.gd" id="1_room"]
+
+[sub_resource type="RectangleShape2D" id="rect_shape"]
+size = Vector2(100, 40)
+
+[node name="Room" type="Node2D"]
+script = ExtResource("1_room")
+
+[node name="Floor" type="ColorRect" parent="."]
+offset_left = -800.0
+offset_top = -600.0
+offset_right = 800.0
+offset_bottom = 600.0
+color = Color(0.2, 0.3, 0.2, 1)
+
+[node name="FloorLabel" type="Label" parent="Floor"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -10.0
+offset_right = 50.0
+offset_bottom = 10.0
+text = "Arena Floor"
+horizontal_alignment = 1
+
+[node name="ExitTrigger" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ExitTrigger"]
+position = Vector2(650, 500)
+shape = SubResource("rect_shape")
+
+[node name="Label" type="Label" parent="ExitTrigger"]
+offset_left = 600.0
+offset_top = 480.0
+offset_right = 700.0
+offset_bottom = 520.0
+text = "Exit to Hub"

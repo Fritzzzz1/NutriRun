@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/ItemPickupDisplay.gd" id="1_display"]
+
+[node name="ItemPickupDisplay" type="Control"]
+layout_mode = 0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("1_display")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="IconContainer" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="Icon" type="ColorRect" parent="VBox/IconContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+custom_minimum_size = Vector2(40, 40)
+
+[node name="ItemName" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Item Name"
+horizontal_alignment = 1
+vertical_alignment = 1
+add_theme_font_size_override("font_size", 24)
+
+[node name="Description" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Description"
+horizontal_alignment = 1
+vertical_alignment = 1
+add_theme_font_size_override("font_size", 16)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
