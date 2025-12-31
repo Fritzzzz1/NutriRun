@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/gameplay/gameplay_root_controller.gd" id="1_k1j6r"]
+
+[node name="GameplayRoot" type="Node"]
+script = ExtResource("1_k1j6r")
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="Control" parent="UILayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopLeft" type="MarginContainer" parent="UILayer/UI"]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 300.0
+offset_bottom = 120.0
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/UI/TopLeft"]
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="UILayer/UI/TopLeft/VBox"]
+text = "Gameplay (stub)"
+
+[node name="ReturnButton" type="Button" parent="UILayer/UI/TopLeft/VBox"]
+text = "Return to Hub"
+
+[connection signal="pressed" from="UILayer/UI/TopLeft/VBox/ReturnButton" to="." method="_on_return_to_hub_pressed"]
+
+

@@ -1,0 +1,81 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/character_select_controller.gd" id="1_3g1vh"]
+
+[node name="CharacterSelect" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3g1vh")
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(620, 420)
+
+[node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+theme_override_constants/separation = 12
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 600.0
+offset_bottom = 400.0
+
+[node name="Title" type="Label" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "Choose Your Character"
+horizontal_alignment = 1
+
+[node name="SelectedLabel" type="Label" parent="Center/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Selected: kid"
+horizontal_alignment = 1
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Center/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+size_flags_horizontal = 3
+
+[node name="KidButton" type="Button" parent="Center/Panel/VBox/ButtonsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kid"
+
+[node name="MonsterButton" type="Button" parent="Center/Panel/VBox/ButtonsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Monster"
+
+[node name="SnowmanButton" type="Button" parent="Center/Panel/VBox/ButtonsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Snowman"
+
+[node name="Spacer" type="Control" parent="Center/Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContinueButton" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "Continue"
+
+[node name="BackButton" type="Button" parent="Center/Panel/VBox"]
+layout_mode = 2
+text = "Back"
+
+[connection signal="pressed" from="Center/Panel/VBox/ButtonsRow/KidButton" to="." method="_on_kid_pressed"]
+[connection signal="pressed" from="Center/Panel/VBox/ButtonsRow/MonsterButton" to="." method="_on_monster_pressed"]
+[connection signal="pressed" from="Center/Panel/VBox/ButtonsRow/SnowmanButton" to="." method="_on_snowman_pressed"]
+[connection signal="pressed" from="Center/Panel/VBox/ContinueButton" to="." method="_on_continue_pressed"]
+[connection signal="pressed" from="Center/Panel/VBox/BackButton" to="." method="_on_back_pressed"]
+
+

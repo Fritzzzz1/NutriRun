@@ -9,9 +9,7 @@ func _ready() -> void:
 
 
 func _on_start_pressed() -> void:
-	GameState.reset_run_state()
-	EventBus.run_started.emit()
-	EventBus.push_notification("Run started (stub).")
+	SceneManager.go_to_character_select()
 
 
 func _on_quit_pressed() -> void:
