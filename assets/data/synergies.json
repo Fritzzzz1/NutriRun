@@ -1,0 +1,15 @@
+{
+  "version": "0.1",
+  "synergies": [
+    {
+      "id": "fruit_3",
+      "name": "Fruit Synergy",
+      "description": "3+ fruits in inventory → Team gains +15% max health.",
+      "condition": "fruit_count >= 3",
+      "buff": { "name": "Fruit Synergy", "duration": 0.0, "stat_multipliers": { "max_health": 1.15 }, "special_effect": "" },
+      "discovery_text": "Fruit power!"
+    }
+  ]
+}
+
+

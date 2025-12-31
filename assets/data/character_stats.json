@@ -1,0 +1,10 @@
+{
+  "version": "0.1",
+  "characters": [
+    { "id": "kid", "hp": 100, "damage": 15, "speed": 15, "ability": "growth_spurt" },
+    { "id": "monster", "hp": 150, "damage": 12, "speed": 10, "ability": "taste_test" },
+    { "id": "snowman", "hp": 80, "damage": 18, "speed": 20, "ability": "chill_aura" }
+  ]
+}
+
+

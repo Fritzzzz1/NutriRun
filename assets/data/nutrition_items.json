@@ -1,0 +1,13 @@
+{
+  "version": "0.1",
+  "items": [
+    {
+      "id": "apple",
+      "type": "fruit",
+      "rarity": "common",
+      "buff": { "name": "Apple", "duration": 0.0, "stat_multipliers": { "damage": 1.1 }, "special_effect": "" }
+    }
+  ]
+}
+
+
