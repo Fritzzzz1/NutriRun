@@ -46,11 +46,80 @@
    - ✅ Added 4 nutrition items to `nutrition_items.json` (apple, banana, orange, carrot)
    - ✅ Player stats update dynamically when items are collected/removed
    - ✅ Test pickups spawn in gameplay rooms for testing
-3. **Horde system (MVP)**
+
+---
+
+## 2025-01-XX (Dynamic Arcade Battle System)
+
+### Accomplished
+
+- **Dynamic Item Spawning System** ✅
+  - ✅ Created `ItemSpawner.gd` that auto-spawns nutrition items every 3 seconds
+  - ✅ Items spawn at random positions avoiding player spawn area
+  - ✅ Maximum 15 items on screen at once
+  - ✅ Loads items dynamically from `nutrition_items.json`
+  - ✅ Expanded nutrition items JSON with 11 items (fruits, vegetables, junk food)
+
+- **Enhanced Item Visuals & Animations** ✅
+  - ✅ Replaced simple colored squares with shape-based visuals:
+    - Circles for fruits (orange), squares for vegetables (green), squares for junk (red)
+  - ✅ Rarity-based sizing and color brightness (common, uncommon, rare)
+  - ✅ Spawn animations: pop-in with scale, bounce, and fade effects
+  - ✅ Continuous pulsing glow effect on items
+  - ✅ Collection animations: scale up and fade out when picked up
+  - ✅ First letter of item name displayed on pickup for identification
+
+- **Enemy System** ✅
+  - ✅ Created `EnemyBase.gd` with health, movement, and combat AI
+  - ✅ Created `EnemySpawner.gd` that auto-spawns enemies every 4 seconds
+  - ✅ Maximum 8 enemies on screen at once
+  - ✅ Enemies spawn at arena edges and chase the player
+  - ✅ Enemy visuals: red diamond shapes with eyes (distinct from items)
+  - ✅ Health bars and damage flash effects
+  - ✅ Death animations with scale and fade
+
+- **Item Pickup Display UI** ✅
+  - ✅ Created `ItemPickupDisplay.gd` + `item_pickup_display.tscn`
+  - ✅ Shows item name and stat changes when collected (e.g., "+10% Damage • +15% Speed")
+  - ✅ Smooth slide-up animation with fade in/out
+  - ✅ Auto-hides after 2.5 seconds
+  - ✅ Color-coded icons based on item type
+
+- **Sound Effects (Placeholder)** ✅
+  - ✅ Added spawn sound effects (pop-in beep)
+  - ✅ Added pickup sound effects (collection beep)
+  - ✅ Placeholder implementation ready for real audio files
+
+- **Code Quality & Fixes** ✅
+  - ✅ Fixed GDScript syntax issues (removed JavaScript ternary operators)
+  - ✅ Fixed `substr()` method to use Godot 4 string indexing
+  - ✅ Added null checks and proper initialization for UI nodes
+  - ✅ Improved error handling throughout
+
+### Current State
+
+The first room is now a **dynamic arcade battle experience**:
+- Items continuously spawn with beautiful animations
+- Enemies spawn and chase the player
+- Collecting items shows nice descriptions
+- Visual feedback is clear and engaging
+- The game feels alive and action-packed
+
+### Next Steps (recommended order)
+
+1. **Horde system (MVP)**
    - `Horde.tscn` + `HordeManager.gd` that spawns 3–5 follower units
    - Simple target acquisition + attack loop
-4. **Run loop glue**
+   - Vegetables that fight alongside the player
+2. **Combat polish**
+   - Player attack mechanics (melee or ranged)
+   - Enemy attack patterns and variety
+   - Damage numbers and visual feedback
+3. **Run loop glue**
    - Award harvest points at end-of-run
    - Save meta progression in `SaveSystem` and show in Hub
+4. **Audio polish**
+   - Replace placeholder sounds with real audio files
+   - Add music tracks for gameplay
 
 
