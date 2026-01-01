@@ -55,6 +55,8 @@ func _load_character_stats() -> void:
 						max_health = char.get("hp", 100)
 						current_health = max_health
 						speed = char.get("speed", 200) * 10  # Convert to pixels/second
+						# Apply 1.5x speed multiplier
+						speed = int(speed * 1.5)
 						break
 	
 	# Fallback if no data found
@@ -62,6 +64,9 @@ func _load_character_stats() -> void:
 		max_health = 100
 		current_health = 100
 		speed = 200
+	
+	# Apply 1.5x speed multiplier to all cases
+	speed = int(speed * 1.5)
 
 
 func _on_inventory_changed() -> void:

@@ -4,6 +4,7 @@ extends Node
 @onready var gameplay_layer: Node2D = $GameplayLayer
 @onready var room: Node2D = $GameplayLayer/Room
 @onready var player: CharacterBody2D = $GameplayLayer/Player
+@onready var camera: Camera2D = $GameplayLayer/Camera2D
 @onready var room_label: Label = $UILayer/UI/TopLeft/VBox/Label
 @onready var item_spawner: Node2D = $GameplayLayer/ItemSpawner
 @onready var enemy_spawner: Node2D = $GameplayLayer/EnemySpawner
@@ -21,6 +22,12 @@ func _ready() -> void:
 	# Initialize room
 	if room and room.has_method("initialize"):
 		room.initialize(GameState.current_room)
+	
+	# Setup camera with world bounds
+	if camera and room and room.has_method("get_world_bounds"):
+		var bounds = room.get_world_bounds()
+		if camera.has_method("set_world_bounds"):
+			camera.set_world_bounds(bounds)
 	
 	# Connect room signals
 	if room and room.has_signal("exit_triggered"):

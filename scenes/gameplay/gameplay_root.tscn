@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/gameplay_root_controller.gd" id="1_k1j6r"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/Room.tscn" id="2_room"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scripts/gameplay/ItemSpawner.gd" id="5_spawner"]
 [ext_resource type="Script" path="res://scripts/gameplay/EnemySpawner.gd" id="6_enemy_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/item_pickup_display.tscn" id="7_item_display"]
+[ext_resource type="Script" path="res://scripts/gameplay/CameraController.gd" id="8_camera"]
 
 [node name="GameplayRoot" type="Node"]
 script = ExtResource("1_k1j6r")
@@ -17,6 +18,10 @@ script = ExtResource("1_k1j6r")
 
 [node name="Player" parent="GameplayLayer" instance=ExtResource("3_player")]
 position = Vector2(0, 0)
+
+[node name="Camera2D" type="Camera2D" parent="GameplayLayer"]
+script = ExtResource("8_camera")
+current = true
 
 [node name="ItemSpawner" type="Node2D" parent="GameplayLayer"]
 script = ExtResource("5_spawner")
