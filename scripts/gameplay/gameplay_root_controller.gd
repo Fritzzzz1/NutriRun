@@ -1,6 +1,7 @@
 extends Node
 
 const DEATH_SCREEN_SCENE = preload("res://scenes/ui/death_screen.tscn")
+const DO_DISPLAY_DEBUG_PANEL: bool = true
 
 @onready var gameplay_layer: Node2D = $GameplayLayer
 @onready var room: Node2D = $GameplayLayer/Room
@@ -10,6 +11,10 @@ const DEATH_SCREEN_SCENE = preload("res://scenes/ui/death_screen.tscn")
 @onready var item_spawner: Node2D = $GameplayLayer/ItemSpawner
 @onready var enemy_spawner: Node2D = $GameplayLayer/EnemySpawner
 @onready var item_display: Control = $UILayer/ItemPickupDisplay
+@onready var debug_panel: PanelContainer = $UILayer/UI/TopLeft/VBox/DebugPanel
+@onready var invincible_checkbox: CheckBox = $UILayer/UI/TopLeft/VBox/DebugPanel/VBox/InvincibleCheckBox
+@onready var game_speed_slider: HSlider = $UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer/GameSpeedSlider
+@onready var game_speed_label: Label = $UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer/GameSpeedValueLabel
 
 var run_stats: Dictionary = {
 	"rooms_cleared": 0,
@@ -57,6 +62,7 @@ func _ready() -> void:
 	_setup_spawners()
 	
 	_update_room_label()
+	_setup_debug_panel()
 	
 	EventBus.push_notification("Gameplay started - Room %d" % GameState.current_room)
 	EventBus.run_started.emit()
@@ -184,3 +190,33 @@ func _on_return_to_hub_pressed() -> void:
 	run_active = false
 	EventBus.run_ended.emit()
 	SceneManager.go_to_hub()
+
+
+func _setup_debug_panel() -> void:
+	"""Setup debug panel visibility."""
+	if debug_panel:
+		debug_panel.visible = DO_DISPLAY_DEBUG_PANEL
+	
+	# Initialize game speed to default (1.0)
+	if game_speed_slider:
+		game_speed_slider.value = 1.0
+		Engine.time_scale = 1.0
+		_update_game_speed_label(1.0)
+
+
+func _on_debug_invincible_toggled(button_pressed: bool) -> void:
+	"""Handle debug invincibility checkbox toggle."""
+	if player and player.has_method("set_debug_invincible"):
+		player.set_debug_invincible(button_pressed)
+
+
+func _on_debug_game_speed_changed(value: float) -> void:
+	"""Handle debug game speed slider change."""
+	Engine.time_scale = value
+	_update_game_speed_label(value)
+
+
+func _update_game_speed_label(value: float) -> void:
+	"""Update the game speed label to show current value."""
+	if game_speed_label:
+		game_speed_label.text = "%.2fx" % value

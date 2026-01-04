@@ -7,14 +7,21 @@ var max_health: int = 50
 var current_health: int = 50
 var speed: float = 80.0
 var damage: int = 10
-var attack_cooldown: float = 1.0
+var attack_cooldown: float = 0.3
 var attack_timer: float = 0.0
+var last_movement_direction: Vector2 = Vector2.ZERO
+
+# Push physics
+var push_velocity: Vector2 = Vector2.ZERO
+var push_resistance: float = 0.3
 
 var can_shoot: bool = true
 var projectile_speed: float = 250.0
 var shoot_range: float = 300.0
 var shoot_cooldown: float = 2.0
 var shoot_timer: float = 0.0
+
+var game_balance: Dictionary = {}
 
 var player_ref: Node2D = null
 var is_active: bool = true
@@ -26,43 +33,52 @@ var hitbox: Area2D = null
 
 
 func _ready() -> void:
+	_load_game_balance()
 	current_health = max_health
-	
+
 	collision_layer = 4
-	collision_mask = 1
-	
+	collision_mask = 1 + 2  # Collide with walls (layer 1) and player (layer 2)
+
 	visual_container = get_node_or_null("VisualContainer")
 	if not visual_container:
 		visual_container = Node2D.new()
 		visual_container.name = "VisualContainer"
 		add_child(visual_container)
-	
+
 	_setup_visual()
 	_setup_hitbox()
 	_find_player()
-	
+
 	add_to_group("enemies")
-	
+
 	shoot_timer = randf_range(0.5, shoot_cooldown)
 
 
 func _physics_process(delta: float) -> void:
 	if not is_active:
 		return
-	
+
 	attack_timer -= delta
 	shoot_timer -= delta
-	
+
+	# Decay push velocity
+	push_velocity = push_velocity.lerp(Vector2.ZERO, 20.0 * delta)
+
 	if player_ref and is_instance_valid(player_ref):
 		var direction = (player_ref.global_position - global_position).normalized()
 		var distance = global_position.distance_to(player_ref.global_position)
-		
-		velocity = direction * speed
+
+		last_movement_direction = direction
+
+		# Combine movement with push from player
+		velocity = direction * speed + push_velocity
 		move_and_slide()
-		
+
 		if can_shoot and shoot_timer <= 0 and distance < shoot_range and distance > 50:
 			_shoot_projectile(direction)
 			shoot_timer = shoot_cooldown
+
+		_check_contact_damage()
 	else:
 		_find_player()
 
@@ -158,6 +174,31 @@ func _shoot_animation() -> void:
 	tween.tween_property(visual_container, "modulate", Color.WHITE, 0.2)
 
 
+func _load_game_balance() -> void:
+	"""Load game balance settings from JSON config."""
+	var balance_path = "res://assets/data/game_balance.json"
+	if ResourceLoader.exists(balance_path):
+		var file = FileAccess.open(balance_path, FileAccess.READ)
+		if file:
+			var json = JSON.new()
+			var parse_result = json.parse_string(file.get_as_text())
+			file.close()
+
+			if parse_result:
+				game_balance = parse_result
+
+				if game_balance.has("enemy"):
+					var enemy_config = game_balance.enemy
+					max_health = enemy_config.get("base_health", 50)
+					speed = enemy_config.get("base_speed", 80.0)
+					damage = enemy_config.get("base_damage", 10)
+					attack_cooldown = enemy_config.get("attack_cooldown", 0.3)
+					projectile_speed = enemy_config.get("projectile_speed", 250.0)
+					shoot_range = enemy_config.get("shoot_range", 300.0)
+					shoot_cooldown = enemy_config.get("shoot_cooldown", 2.0)
+					push_resistance = enemy_config.get("push_resistance", 0.3)
+
+
 func _find_player() -> void:
 	"""Find the player in the scene."""
 	var players = get_tree().get_nodes_in_group("player")
@@ -222,24 +263,37 @@ func _setup_hitbox() -> void:
 		hitbox.area_entered.connect(_on_hitbox_area_entered)
 
 
+func _check_contact_damage() -> void:
+	"""Check for continuous contact damage with player."""
+	if attack_timer > 0 or not is_active or not hitbox:
+		return
+
+	var overlapping_areas = hitbox.get_overlapping_areas()
+	for area in overlapping_areas:
+		var player = area.get_parent()
+		if player and player.is_in_group("player"):
+			_deal_contact_damage(player)
+			break
+
+
 func _on_hitbox_area_entered(area: Area2D) -> void:
 	"""Handle when hitbox overlaps with player hurtbox (contact damage)."""
 	if attack_timer > 0 or not is_active:
 		return
-	
+
 	var player = area.get_parent()
 	if player and player.is_in_group("player"):
 		_deal_contact_damage(player)
 
 
 func _deal_contact_damage(player: Node2D) -> void:
-	"""Deal contact damage to the player."""
+	"""Deal contact damage to the player and push them in enemy's movement direction."""
 	if player.has_method("take_damage"):
-		var knockback_dir = (player.global_position - global_position).normalized()
-		player.take_damage(damage, knockback_dir)
+		var push_direction = last_movement_direction if last_movement_direction != Vector2.ZERO else (player.global_position - global_position).normalized()
+		player.take_damage(damage, push_direction)
 		enemy_hit_player.emit()
 		attack_timer = attack_cooldown
-		
+
 		_attack_animation()
 
 
@@ -284,14 +338,19 @@ func _update_health_display() -> void:
 		health_bar.value = current_health
 
 
+func apply_push(push_force: Vector2) -> void:
+	"""Apply a push force to this enemy (from player collision)."""
+	push_velocity += push_force * push_resistance
+
+
 func _die() -> void:
 	"""Handle enemy death."""
 	is_active = false
 	enemy_died.emit()
-	
+
 	if hitbox:
 		hitbox.set_deferred("monitoring", false)
-	
+
 	if visual_container:
 		var tween = create_tween()
 		tween.set_parallel(true)
@@ -299,5 +358,5 @@ func _die() -> void:
 		tween.tween_property(visual_container, "modulate:a", 0.0, 0.3)
 		tween.tween_property(self, "position:y", position.y - 20, 0.3)
 		await tween.finished
-	
+
 	queue_free()

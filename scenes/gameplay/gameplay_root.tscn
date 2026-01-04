@@ -68,6 +68,51 @@ bar_height = 24.0
 layout_mode = 2
 text = "Return to Hub"
 
+[node name="DebugPanel" type="PanelContainer" parent="UILayer/UI/TopLeft/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 140)
+
+[node name="VBox" type="VBoxContainer" parent="UILayer/UI/TopLeft/VBox/DebugPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 272.0
+offset_bottom = 132.0
+
+[node name="Label" type="Label" parent="UILayer/UI/TopLeft/VBox/DebugPanel/VBox"]
+layout_mode = 2
+text = "Debug"
+theme_override_font_sizes/font_size = 14
+
+[node name="InvincibleCheckBox" type="CheckBox" parent="UILayer/UI/TopLeft/VBox/DebugPanel/VBox"]
+layout_mode = 2
+text = "Invincible"
+
+[node name="GameSpeedContainer" type="HBoxContainer" parent="UILayer/UI/TopLeft/VBox/DebugPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GameSpeedLabel" type="Label" parent="UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "Speed:"
+custom_minimum_size = Vector2(50, 0)
+
+[node name="GameSpeedSlider" type="HSlider" parent="UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.25
+max_value = 10.0
+step = 0.25
+value = 1.0
+
+[node name="GameSpeedValueLabel" type="Label" parent="UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+text = "1.0x"
+custom_minimum_size = Vector2(40, 0)
+
 [node name="TopRight" type="MarginContainer" parent="UILayer/UI"]
 layout_mode = 1
 anchors_preset = 1
@@ -96,3 +141,5 @@ layout_mode = 2
 [node name="ItemPickupDisplay" parent="UILayer" instance=ExtResource("7_item_display")]
 
 [connection signal="pressed" from="UILayer/UI/TopLeft/VBox/ReturnButton" to="." method="_on_return_to_hub_pressed"]
+[connection signal="toggled" from="UILayer/UI/TopLeft/VBox/DebugPanel/VBox/InvincibleCheckBox" to="." method="_on_debug_invincible_toggled"]
+[connection signal="value_changed" from="UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer/GameSpeedSlider" to="." method="_on_debug_game_speed_changed"]

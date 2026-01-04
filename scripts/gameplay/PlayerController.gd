@@ -10,11 +10,22 @@ var current_health: int = 100
 var speed: int = 200
 
 var is_invincible: bool = false
+var debug_invincible: bool = false
 var is_dying: bool = false
 var invincibility_duration: float = 0.8
 var knockback_force: float = 300.0
 var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_decay: float = 10.0
+
+# Push physics
+var push_velocity: Vector2 = Vector2.ZERO
+var push_force: float = 1.0
+var push_dot_threshold: float = 0.5
+var push_decay: float = 15.0
+var max_push_force: float = 200.0
+var player_push_force: float = 50.0
+
+var game_balance: Dictionary = {}
 
 @onready var health_bar: ProgressBar = $HealthBar
 @onready var sprite: ColorRect = $Sprite
@@ -29,8 +40,9 @@ var bounce_cooldown: float = 0.0
 
 
 func _ready() -> void:
+	_load_game_balance()
 	_load_character_stats()
-	
+
 	base_max_health = max_health
 	base_speed = speed
 	
@@ -54,6 +66,37 @@ func _find_world_bounds() -> void:
 			world_bounds = camera.world_bounds
 
 
+func _load_game_balance() -> void:
+	"""Load game balance settings from JSON config."""
+	var balance_path = "res://assets/data/game_balance.json"
+	if ResourceLoader.exists(balance_path):
+		var file = FileAccess.open(balance_path, FileAccess.READ)
+		if file:
+			var json = JSON.new()
+			var parse_result = json.parse_string(file.get_as_text())
+			file.close()
+
+			if parse_result:
+				game_balance = parse_result
+
+				if game_balance.has("player"):
+					var player_config = game_balance.player
+					base_max_health = player_config.get("base_health", 100)
+					max_health = base_max_health
+					current_health = max_health
+					base_speed = player_config.get("base_speed", 200)
+					speed = base_speed
+					knockback_force = player_config.get("knockback_force", 300.0)
+					knockback_decay = player_config.get("knockback_decay", 10.0)
+					invincibility_duration = player_config.get("invincibility_duration", 0.8)
+					bounce_force = player_config.get("bounce_force", 200.0)
+					push_force = player_config.get("push_force", 250.0)
+					push_dot_threshold = player_config.get("push_dot_threshold", 0.5)
+					push_decay = player_config.get("push_decay", 15.0)
+					max_push_force = player_config.get("max_push_force", 400.0)
+					player_push_force = player_config.get("player_push_force", 50.0)
+
+
 func _load_character_stats() -> void:
 	var char_id: String = GameState.selected_character_id
 	
@@ -71,16 +114,13 @@ func _load_character_stats() -> void:
 						character_data = char
 						max_health = char.get("hp", 100)
 						current_health = max_health
-						speed = char.get("speed", 200) * 10
-						speed = int(speed * 1.5)
+						speed = char.get("speed", 20) * 10
 						break
-	
+
 	if character_data.is_empty():
 		max_health = 100
 		current_health = 100
 		speed = 200
-	
-	speed = int(speed * 1.5)
 
 
 func _on_inventory_changed() -> void:
@@ -103,17 +143,17 @@ func _on_inventory_changed() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	_handle_movement(delta)
 	_apply_knockback(delta)
+	_handle_movement(delta)
 	_clamp_to_world_bounds()
-	
+
 	if bounce_cooldown > 0:
 		bounce_cooldown -= delta
 
 
 func _handle_movement(delta: float) -> void:
 	var input_vector := Vector2.ZERO
-	
+
 	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
 		input_vector.y -= 1
 	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
@@ -122,19 +162,102 @@ func _handle_movement(delta: float) -> void:
 		input_vector.x -= 1
 	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
 		input_vector.x += 1
-	
+
 	if input_vector.length() > 0:
 		input_vector = input_vector.normalized()
-		velocity = input_vector * speed + knockback_velocity
-	else:
-		velocity = knockback_velocity
-	
+
+	# Combine all forces: input, knockback, and push
+	var input_velocity = input_vector * speed
+	velocity = input_velocity + knockback_velocity + push_velocity
+
+	print("[PUSH DEBUG] Before move_and_slide - push_velocity: %s, total velocity: %s" % [push_velocity, velocity])
+
 	move_and_slide()
+
+	# Calculate push forces from collisions and immediately apply for next iteration
+	_calculate_push_forces()
+
+	# Decay push when not colliding (will be overwritten if collision detected above)
+	if get_slide_collision_count() == 0:
+		push_velocity = push_velocity.lerp(Vector2.ZERO, push_decay * delta)
+		if push_velocity.length() > 0.1:
+			print("[PUSH DEBUG] Decaying push_velocity: %s" % push_velocity)
+
+	print("[PUSH DEBUG] End of frame - push_velocity: %s" % push_velocity)
 
 
 func _apply_knockback(delta: float) -> void:
 	"""Decay knockback over time."""
 	knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, knockback_decay * delta)
+
+
+func _calculate_push_forces() -> void:
+	"""Calculate push forces from directional collisions with enemies."""
+	var accumulated_push = Vector2.ZERO
+	var collision_count = get_slide_collision_count()
+
+	if collision_count > 0:
+		print("[PUSH DEBUG] Total collisions: %d" % collision_count)
+
+	for i in range(collision_count):
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+
+		print("[PUSH DEBUG] Collision %d: collider=%s, is_enemy=%s" % [
+			i,
+			collider.name if collider else "null",
+			collider.is_in_group("enemies") if collider else false
+		])
+
+		if not collider or not collider.is_in_group("enemies"):
+			continue
+
+		# Get enemy movement direction and speed
+		# IMPORTANT: Don't use collider.velocity - it's modified by move_and_slide()
+		# Use last_movement_direction which stores the enemy's intended direction
+		var enemy_direction = Vector2.ZERO
+		var enemy_speed = 0.0
+
+		if "last_movement_direction" in collider and "speed" in collider:
+			enemy_direction = collider.last_movement_direction
+			enemy_speed = collider.speed
+
+		print("[PUSH DEBUG] Enemy direction: %s, speed: %.2f" % [enemy_direction, enemy_speed])
+
+		if enemy_direction.length_squared() < 0.01:
+			print("[PUSH DEBUG] Enemy not moving, skipping")
+			continue
+
+		var enemy_vel_norm = enemy_direction.normalized()
+
+		# Simple approach: Push player in the direction the enemy is moving
+		# Scale push by enemy speed
+		var speed_factor = min(enemy_speed / 100.0, 1.5)
+		var push_amount = enemy_vel_norm * push_force * speed_factor
+		accumulated_push += push_amount
+
+		print("[PUSH DEBUG] PUSH APPLIED! enemy_vel_norm: %s, speed_factor: %.2f, push_amount: %s, total: %s" % [
+			enemy_vel_norm,
+			speed_factor,
+			push_amount,
+			accumulated_push
+		])
+
+		# Apply minor counter-push to enemy
+		if collider.has_method("apply_push"):
+			var counter_push = -enemy_vel_norm * player_push_force * speed_factor
+			collider.apply_push(counter_push)
+
+	# Cap maximum push force when surrounded
+	if accumulated_push.length() > max_push_force:
+		accumulated_push = accumulated_push.normalized() * max_push_force
+
+	print("[PUSH DEBUG] Final accumulated_push: %s, push_velocity set to: %s" % [accumulated_push, accumulated_push])
+
+	# Set push velocity for next frame
+	push_velocity = accumulated_push
+
+
 
 
 func _clamp_to_world_bounds() -> void:
@@ -215,7 +338,8 @@ func take_damage(amount: int, knockback_direction: Vector2 = Vector2.ZERO) -> vo
 	_update_health_display()
 	health_changed.emit(current_health, max_health)
 	
-	if current_health <= 0:
+	# Check for death only if debug invincibility is not enabled
+	if current_health <= 0 and not debug_invincible:
 		_die()
 		return
 	
@@ -309,3 +433,12 @@ func _play_death_animation() -> void:
 	death_tween.tween_property(sprite, "rotation", randf_range(-0.5, 0.5), 0.4)
 	
 	death_tween.tween_property(self, "position:y", position.y - 30, 0.4).set_ease(Tween.EASE_OUT)
+
+
+func set_debug_invincible(enabled: bool) -> void:
+	"""Set debug invincibility mode."""
+	debug_invincible = enabled
+	if enabled:
+		EventBus.push_notification("Debug: Invincibility enabled")
+	else:
+		EventBus.push_notification("Debug: Invincibility disabled")
