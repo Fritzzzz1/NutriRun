@@ -105,6 +105,17 @@ The first room is now a **dynamic arcade battle experience**:
 - Visual feedback is clear and engaging
 - The game feels alive and action-packed
 
+- **Camera System Overhaul** ✅
+  - ✅ Fixed critical camera stuttering/flashing issues
+  - ✅ Implemented smooth player-centered camera mode
+  - ✅ Fixed broken lerp calculation (was 100x too slow)
+  - ✅ Increased edge detection threshold to 300px (50% larger)
+  - ✅ Synchronized camera updates with player physics (_physics_process)
+  - ✅ Added target snapping at world boundaries (prevents rubber-banding)
+  - ✅ Refactored into mode-specific system (PLAYER_CENTERED, EDGE_BASED)
+  - ✅ Added tunable smoothness parameter (3.0-10.0 range, default 4.5)
+  - ✅ Result: Cinematic camera follow with no visual artifacts
+
 ### Next Steps (recommended order)
 
 1. **Horde system (MVP)**
