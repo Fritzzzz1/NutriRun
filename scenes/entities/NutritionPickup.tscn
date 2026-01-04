@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/entities/NutritionPickup.gd" id="1_pickup"]
 
@@ -6,6 +6,8 @@
 radius = 16.0
 
 [node name="NutritionPickup" type="Area2D"]
+collision_layer = 32
+collision_mask = 2
 script = ExtResource("1_pickup")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -16,4 +18,3 @@ shape = SubResource("circle_shape")
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
 [node name="PickupSound" type="AudioStreamPlayer2D" parent="."]
-

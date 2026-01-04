@@ -7,7 +7,7 @@ var spawn_interval: float = 4.0  # Seconds between spawns
 var spawn_timer: float = 0.0
 var max_enemies: int = 8  # Max concurrent enemies
 var current_enemies: Array[Node2D] = []
-var spawn_area: Rect2 = Rect2(-700, -500, 1400, 1000)
+var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)  # Large spawn area across the arena
 
 var gameplay_layer: Node2D = null
 
@@ -62,19 +62,22 @@ func _spawn_enemy() -> void:
 
 
 func _create_enemy() -> Node2D:
-	"""Create an enemy instance."""
-	# For now, create programmatically
-	# Later we can load from scene files for different enemy types
-	
+	"""Create an enemy instance with proper collision setup."""
 	var enemy = CharacterBody2D.new()
 	enemy.name = "Enemy"
+	
+	# Set collision layers BEFORE adding to tree
+	# Layer 3 (enemies = 4), mask only layer 1 (world = 1) - NOT player to avoid getting stuck
+	enemy.collision_layer = 4
+	enemy.collision_mask = 1
 	
 	# Add script
 	var script = load("res://scripts/enemies/EnemyBase.gd")
 	enemy.set_script(script)
 	
-	# Add collision
+	# Add collision shape
 	var collision = CollisionShape2D.new()
+	collision.name = "CollisionShape2D"
 	var shape = CircleShape2D.new()
 	shape.radius = 16.0
 	collision.shape = shape
@@ -92,6 +95,8 @@ func _create_enemy() -> Node2D:
 	health_bar.position = Vector2(-20, -30)
 	health_bar.show_percentage = false
 	enemy.add_child(health_bar)
+	
+	# Note: Hitbox is created in _ready() of EnemyBase.gd
 	
 	return enemy
 
@@ -161,4 +166,3 @@ func _on_enemy_hit_player() -> void:
 func set_spawn_rate(interval: float) -> void:
 	"""Adjust spawn rate dynamically."""
 	spawn_interval = max(1.0, interval)  # Minimum 1 second
-

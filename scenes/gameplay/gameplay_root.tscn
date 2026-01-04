@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/gameplay_root_controller.gd" id="1_k1j6r"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/Room.tscn" id="2_room"]
@@ -8,6 +8,8 @@
 [ext_resource type="Script" path="res://scripts/gameplay/EnemySpawner.gd" id="6_enemy_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/item_pickup_display.tscn" id="7_item_display"]
 [ext_resource type="Script" path="res://scripts/gameplay/CameraController.gd" id="8_camera"]
+[ext_resource type="Script" path="res://scripts/ui/Minimap.gd" id="9_minimap"]
+[ext_resource type="Script" path="res://scripts/ui/PlayerHealthUI.gd" id="10_health_ui"]
 
 [node name="GameplayRoot" type="Node"]
 script = ExtResource("1_k1j6r")
@@ -43,17 +45,27 @@ grow_vertical = 2
 layout_mode = 1
 anchors_preset = 0
 offset_right = 300.0
-offset_bottom = 120.0
+offset_bottom = 180.0
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 
 [node name="VBox" type="VBoxContainer" parent="UILayer/UI/TopLeft"]
-theme_override_constants/separation = 8
+layout_mode = 2
+theme_override_constants/separation = 12
 
 [node name="Label" type="Label" parent="UILayer/UI/TopLeft/VBox"]
+layout_mode = 2
 text = "Room: 1"
 
+[node name="PlayerHealthUI" type="Control" parent="UILayer/UI/TopLeft/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 65)
+script = ExtResource("10_health_ui")
+bar_width = 250.0
+bar_height = 24.0
+
 [node name="ReturnButton" type="Button" parent="UILayer/UI/TopLeft/VBox"]
+layout_mode = 2
 text = "Return to Hub"
 
 [node name="TopRight" type="MarginContainer" parent="UILayer/UI"]
@@ -63,14 +75,24 @@ anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -266.0
 offset_right = 0.0
-offset_bottom = 208.0
+offset_bottom = 360.0
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_top = 16
 
-[node name="InventoryUI" parent="UILayer/UI/TopRight" instance=ExtResource("4_inventory")]
+[node name="VBox" type="VBoxContainer" parent="UILayer/UI/TopRight"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Minimap" type="Control" parent="UILayer/UI/TopRight/VBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(200, 150)
+script = ExtResource("9_minimap")
+minimap_size = Vector2(200, 150)
+world_bounds = Rect2(-3840, -2160, 7680, 4320)
+
+[node name="InventoryUI" parent="UILayer/UI/TopRight/VBox" instance=ExtResource("4_inventory")]
+layout_mode = 2
 
 [node name="ItemPickupDisplay" parent="UILayer" instance=ExtResource("7_item_display")]
 
 [connection signal="pressed" from="UILayer/UI/TopLeft/VBox/ReturnButton" to="." method="_on_return_to_hub_pressed"]
-
-

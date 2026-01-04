@@ -22,6 +22,7 @@ GameState="*res://scripts/autoloads/game_state.gd"
 SaveSystem="*res://scripts/autoloads/save_system.gd"
 SceneManager="*res://scripts/autoloads/scene_manager.gd"
 InventoryManager="*res://scripts/autoloads/inventory_manager.gd"
+DamageNumbers="*res://scripts/ui/DamageNumbers.gd"
 
 [display]
 
@@ -30,3 +31,12 @@ window/size/viewport_height=1080
 window/size/mode=2
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
+
+[layer_names]
+
+2d_physics/layer_1="world"
+2d_physics/layer_2="player"
+2d_physics/layer_3="enemies"
+2d_physics/layer_4="player_hurtbox"
+2d_physics/layer_5="enemy_hitbox"
+2d_physics/layer_6="items"

@@ -1,11 +1,16 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/PlayerController.gd" id="1_player"]
 
 [sub_resource type="RectangleShape2D" id="rect_shape"]
 size = Vector2(32, 32)
 
+[sub_resource type="RectangleShape2D" id="hurtbox_shape"]
+size = Vector2(28, 28)
+
 [node name="Player" type="CharacterBody2D" groups=["player"]]
+collision_layer = 2
+collision_mask = 1
 script = ExtResource("1_player")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -27,3 +32,12 @@ max_value = 100.0
 value = 100.0
 show_percentage = false
 
+[node name="Hurtbox" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 16
+monitorable = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Hurtbox"]
+shape = SubResource("hurtbox_shape")
+
+[connection signal="area_entered" from="Hurtbox" to="." method="_on_hurtbox_area_entered"]

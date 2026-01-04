@@ -6,7 +6,7 @@ signal item_spawned(item_node: Node2D)
 var spawn_interval: float = 3.0  # Seconds between spawns
 var spawn_timer: float = 0.0
 var items_data: Array = []
-var spawn_area: Rect2 = Rect2(-700, -500, 1400, 1000)  # Spawn area bounds
+var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)  # Large spawn area across the arena
 var max_items_on_screen: int = 15  # Max concurrent items
 var current_items: Array[Node2D] = []
 

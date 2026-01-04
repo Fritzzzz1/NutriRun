@@ -7,8 +7,8 @@ signal exit_triggered
 var room_number: int = 1
 var is_cleared: bool = false
 
-# World bounds for camera system
-var world_bounds: Rect2 = Rect2(-5000, -5000, 10000, 10000)
+# World bounds for camera system - large arena for exploration
+var world_bounds: Rect2 = Rect2(-3840, -2160, 7680, 4320)  # 4x4 camera viewports (1920x1080 each)
 
 @onready var exit_trigger: Area2D = $ExitTrigger
 @onready var floor: ColorRect = $Floor
@@ -19,11 +19,6 @@ func _ready() -> void:
 	if exit_trigger:
 		exit_trigger.body_entered.connect(_on_exit_trigger_entered)
 		exit_trigger.area_entered.connect(_on_exit_trigger_entered)
-	
-	# Set up world bounds based on floor size
-	if floor:
-		var floor_rect = floor.get_rect()
-		world_bounds = Rect2(floor_rect.position, floor_rect.size)
 	
 	# Notify camera controller of world bounds
 	_setup_camera_bounds()

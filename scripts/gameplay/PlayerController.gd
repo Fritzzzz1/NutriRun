@@ -10,10 +10,26 @@ var max_health: int = 100
 var current_health: int = 100
 var speed: int = 200
 
+# Damage feedback
+var is_invincible: bool = false
+var is_dying: bool = false
+var invincibility_duration: float = 0.8
+var knockback_force: float = 300.0
+var knockback_velocity: Vector2 = Vector2.ZERO
+var knockback_decay: float = 10.0
+
 @onready var health_bar: ProgressBar = $HealthBar
+@onready var sprite: ColorRect = $Sprite
+@onready var hurtbox: Area2D = $Hurtbox
 
 # Character stats from GameState
 var character_data: Dictionary = {}
+
+# World bounds for movement clamping
+var world_bounds: Rect2 = Rect2()
+var player_half_size: float = 16.0  # Half of player collision size
+var bounce_force: float = 200.0  # Force applied when hitting boundary
+var bounce_cooldown: float = 0.0  # Prevent multiple bounces
 
 
 func _ready() -> void:
@@ -32,7 +48,19 @@ func _ready() -> void:
 	# Connect to inventory changes to update stats
 	InventoryManager.inventory_changed.connect(_on_inventory_changed)
 	
+	# Get world bounds from camera
+	call_deferred("_find_world_bounds")
+	
 	EventBus.push_notification("Player spawned (HP: %d/%d)" % [current_health, max_health])
+
+
+func _find_world_bounds() -> void:
+	"""Get world bounds from camera controller."""
+	var cameras = get_tree().get_nodes_in_group("cameras")
+	if cameras.size() > 0:
+		var camera = cameras[0]
+		if camera.world_bounds.has_area():
+			world_bounds = camera.world_bounds
 
 
 func _load_character_stats() -> void:
@@ -94,6 +122,12 @@ func _on_inventory_changed() -> void:
 
 func _physics_process(delta: float) -> void:
 	_handle_movement(delta)
+	_apply_knockback(delta)
+	_clamp_to_world_bounds()
+	
+	# Decay bounce cooldown
+	if bounce_cooldown > 0:
+		bounce_cooldown -= delta
 
 
 func _handle_movement(delta: float) -> void:
@@ -112,26 +146,163 @@ func _handle_movement(delta: float) -> void:
 	# Normalize diagonal movement
 	if input_vector.length() > 0:
 		input_vector = input_vector.normalized()
-		velocity = input_vector * speed
+		velocity = input_vector * speed + knockback_velocity
 	else:
-		velocity = Vector2.ZERO
+		velocity = knockback_velocity
 	
 	move_and_slide()
 
 
-func take_damage(amount: int) -> void:
+func _apply_knockback(delta: float) -> void:
+	"""Decay knockback over time."""
+	knockback_velocity = knockback_velocity.lerp(Vector2.ZERO, knockback_decay * delta)
+
+
+func _clamp_to_world_bounds() -> void:
+	"""Keep player within world boundaries with bounce effect."""
+	if not world_bounds.has_area():
+		return
+	
+	var min_x = world_bounds.position.x + player_half_size
+	var max_x = world_bounds.position.x + world_bounds.size.x - player_half_size
+	var min_y = world_bounds.position.y + player_half_size
+	var max_y = world_bounds.position.y + world_bounds.size.y - player_half_size
+	
+	var bounce_dir = Vector2.ZERO
+	var hit_boundary = false
+	
+	# Check horizontal boundaries
+	if global_position.x < min_x:
+		global_position.x = min_x
+		bounce_dir.x = 1.0  # Bounce right
+		hit_boundary = true
+	elif global_position.x > max_x:
+		global_position.x = max_x
+		bounce_dir.x = -1.0  # Bounce left
+		hit_boundary = true
+	
+	# Check vertical boundaries
+	if global_position.y < min_y:
+		global_position.y = min_y
+		bounce_dir.y = 1.0  # Bounce down
+		hit_boundary = true
+	elif global_position.y > max_y:
+		global_position.y = max_y
+		bounce_dir.y = -1.0  # Bounce up
+		hit_boundary = true
+	
+	# Apply bounce if we hit a boundary and cooldown is ready
+	if hit_boundary and bounce_cooldown <= 0:
+		_apply_boundary_bounce(bounce_dir.normalized())
+		bounce_cooldown = 0.3  # Prevent rapid bouncing
+
+
+func _apply_boundary_bounce(direction: Vector2) -> void:
+	"""Apply a bounce effect when hitting world boundary."""
+	# Add bounce to knockback velocity
+	knockback_velocity = direction * bounce_force
+	
+	# Visual feedback - quick squeeze and flash
+	if sprite:
+		var tween = create_tween()
+		tween.set_parallel(true)
+		
+		# Squeeze effect (compress in hit direction, expand perpendicular)
+		var squeeze_scale: Vector2
+		if abs(direction.x) > abs(direction.y):
+			squeeze_scale = Vector2(0.7, 1.3)  # Horizontal hit
+		else:
+			squeeze_scale = Vector2(1.3, 0.7)  # Vertical hit
+		
+		tween.tween_property(sprite, "scale", squeeze_scale, 0.05)
+		tween.chain().tween_property(sprite, "scale", Vector2.ONE, 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
+		
+		# Brief color flash
+		var original_color = sprite.color
+		tween.tween_property(sprite, "color", Color(1.0, 0.8, 0.4), 0.05)
+		tween.tween_property(sprite, "color", original_color, 0.1)
+
+
+func _on_hurtbox_area_entered(area: Area2D) -> void:
+	"""Handle collision with enemy hitbox."""
+	if is_invincible:
+		return
+	
+	# Check if it's an enemy hitbox
+	var parent = area.get_parent()
+	if parent and parent.is_in_group("enemies"):
+		var damage = parent.damage if "damage" in parent else 10
+		var knockback_dir = (global_position - parent.global_position).normalized()
+		take_damage(damage, knockback_dir)
+
+
+func take_damage(amount: int, knockback_direction: Vector2 = Vector2.ZERO) -> void:
+	if is_invincible or is_dying:
+		return
+	
 	current_health = max(0, current_health - amount)
 	_update_health_display()
 	health_changed.emit(current_health, max_health)
 	
+	# Check for death BEFORE starting invincibility
 	if current_health <= 0:
 		_die()
+		return
+	
+	# Show damage number
+	if DamageNumbers:
+		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, -20))
+	
+	# Apply knockback
+	if knockback_direction != Vector2.ZERO:
+		knockback_velocity = knockback_direction * knockback_force
+	
+	# Visual feedback
+	_flash_damage()
+	_start_invincibility()
+
+
+func _flash_damage() -> void:
+	"""Flash red/white when taking damage."""
+	if not sprite:
+		return
+	
+	var original_color = sprite.color
+	var tween = create_tween()
+	
+	# Flash to white then red then back
+	tween.tween_property(sprite, "color", Color.WHITE, 0.05)
+	tween.tween_property(sprite, "color", Color(1.0, 0.3, 0.3), 0.1)
+	tween.tween_property(sprite, "color", original_color, 0.15)
+
+
+func _start_invincibility() -> void:
+	"""Start invincibility frames with flashing effect."""
+	is_invincible = true
+	
+	# Create flashing effect during i-frames
+	var flash_tween = create_tween()
+	flash_tween.set_loops(int(invincibility_duration / 0.15))
+	flash_tween.tween_property(sprite, "modulate:a", 0.3, 0.075)
+	flash_tween.tween_property(sprite, "modulate:a", 1.0, 0.075)
+	
+	# End invincibility after duration
+	await get_tree().create_timer(invincibility_duration).timeout
+	is_invincible = false
+	
+	# Ensure sprite is fully visible
+	if sprite:
+		sprite.modulate.a = 1.0
 
 
 func heal(amount: int) -> void:
 	current_health = min(max_health, current_health + amount)
 	_update_health_display()
 	health_changed.emit(current_health, max_health)
+	
+	# Show heal number
+	if DamageNumbers:
+		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, -20), null, false, true)
 
 
 func _update_health_display() -> void:
@@ -140,7 +311,47 @@ func _update_health_display() -> void:
 
 
 func _die() -> void:
+	"""Handle player death with animation."""
+	# Prevent multiple death calls
+	if is_dying:
+		return
+	is_dying = true
+	is_invincible = true  # Prevent further damage
+	
 	EventBus.push_notification("Player died!")
+	
+	# Disable hurtbox
+	if hurtbox:
+		hurtbox.set_deferred("monitoring", false)
+	
+	# Disable movement
+	set_physics_process(false)
+	
+	# Emit signal immediately so death screen appears right away
 	player_died.emit()
-	# Future: Handle death logic (return to hub, show game over, etc.)
+	
+	# Play death animation in background (non-blocking)
+	_play_death_animation()
 
+
+func _play_death_animation() -> void:
+	"""Play death animation sequence (non-blocking)."""
+	if not sprite:
+		return
+	
+	# Flash rapidly immediately
+	var flash_tween = create_tween()
+	for i in range(6):
+		flash_tween.tween_property(sprite, "modulate", Color(2.0, 0.5, 0.5, 1.0), 0.05)
+		flash_tween.tween_property(sprite, "modulate", Color(0.3, 0.1, 0.1, 1.0), 0.05)
+	await flash_tween.finished
+	
+	# Expand and fade
+	var death_tween = create_tween()
+	death_tween.set_parallel(true)
+	death_tween.tween_property(sprite, "scale", Vector2(2.0, 2.0), 0.4).set_ease(Tween.EASE_OUT)
+	death_tween.tween_property(sprite, "modulate:a", 0.0, 0.4)
+	death_tween.tween_property(sprite, "rotation", randf_range(-0.5, 0.5), 0.4)
+	
+	# Float up slightly
+	death_tween.tween_property(self, "position:y", position.y - 30, 0.4).set_ease(Tween.EASE_OUT)
