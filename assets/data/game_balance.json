@@ -1,0 +1,32 @@
+{
+  "player": {
+    "base_health": 10000,
+    "base_speed": 200,
+    "knockback_force": 1,
+    "knockback_decay": 10,
+    "invincibility_duration": 0.8,
+    "bounce_force": 100,
+    "push_force": 80,
+    "push_dot_threshold": 0.5,
+    "push_decay": 15,
+    "max_push_force": 400,
+    "player_push_force": 50
+  },
+  "enemy": {
+    "base_health": 50,
+    "base_speed": 80,
+    "base_damage": 10,
+    "attack_cooldown": 0.3,
+    "projectile_speed": 250,
+    "shoot_range": 300,
+    "shoot_cooldown": 2.0,
+    "push_resistance": 0.3
+  },
+  "combat": {
+    "damage_number_offset_y": -20,
+    "critical_damage_threshold": 20
+  },
+  "camera": {
+    "player_half_size": 16
+  }
+}
