@@ -1,21 +1,18 @@
-## Enemy spawner: automatically spawns enemies at intervals.
 extends Node2D
 
 signal enemy_spawned(enemy_node: Node2D)
 
-var spawn_interval: float = 4.0  # Seconds between spawns
+var spawn_interval: float = 4.0
 var spawn_timer: float = 0.0
-var max_enemies: int = 8  # Max concurrent enemies
+var max_enemies: int = 8
 var current_enemies: Array[Node2D] = []
-var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)  # Large spawn area across the arena
+var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)
 
 var gameplay_layer: Node2D = null
 
 
 func _ready() -> void:
-	# Find gameplay layer
 	_find_gameplay_layer()
-	# Start spawning after initial delay
 	spawn_timer = spawn_interval * 0.7
 
 
@@ -24,11 +21,9 @@ func _find_gameplay_layer() -> void:
 	var parent = get_parent()
 	if parent:
 		gameplay_layer = parent
-		# If parent is GameplayLayer, we're good. Otherwise search for it.
 		if parent.name != "GameplayLayer":
 			gameplay_layer = parent.get_node_or_null("GameplayLayer")
 			if not gameplay_layer:
-				# Try to find it in the tree
 				var root = get_tree().root
 				gameplay_layer = root.get_node_or_null("GameplayRoot/GameplayLayer")
 
@@ -36,10 +31,8 @@ func _find_gameplay_layer() -> void:
 func _process(delta: float) -> void:
 	spawn_timer -= delta
 	
-	# Clean up dead enemies from tracking
 	current_enemies = current_enemies.filter(func(enemy): return is_instance_valid(enemy))
 	
-	# Spawn new enemy if timer expired and we're under the limit
 	if spawn_timer <= 0.0 and current_enemies.size() < max_enemies:
 		_spawn_enemy()
 		spawn_timer = spawn_interval
@@ -49,7 +42,6 @@ func _spawn_enemy() -> void:
 	"""Spawn an enemy at a random position."""
 	var spawn_pos = _get_random_spawn_position()
 	
-	# Create enemy scene programmatically (or load from scene file if we create one)
 	var enemy = _create_enemy()
 	enemy.position = spawn_pos
 	enemy.enemy_died.connect(_on_enemy_died)
@@ -67,15 +59,12 @@ func _create_enemy() -> Node2D:
 	enemy.name = "Enemy"
 	
 	# Set collision layers BEFORE adding to tree
-	# Layer 3 (enemies = 4), mask only layer 1 (world = 1) - NOT player to avoid getting stuck
 	enemy.collision_layer = 4
 	enemy.collision_mask = 1
 	
-	# Add script
 	var script = load("res://scripts/enemies/EnemyBase.gd")
 	enemy.set_script(script)
 	
-	# Add collision shape
 	var collision = CollisionShape2D.new()
 	collision.name = "CollisionShape2D"
 	var shape = CircleShape2D.new()
@@ -83,12 +72,10 @@ func _create_enemy() -> Node2D:
 	collision.shape = shape
 	enemy.add_child(collision)
 	
-	# Add visual container
 	var visual_container = Node2D.new()
 	visual_container.name = "VisualContainer"
 	enemy.add_child(visual_container)
 	
-	# Add health bar
 	var health_bar = ProgressBar.new()
 	health_bar.name = "HealthBar"
 	health_bar.size = Vector2(40, 6)
@@ -107,9 +94,7 @@ func _get_random_spawn_position() -> Vector2:
 	var pos: Vector2
 	
 	while attempts < 20:
-		# Spawn at edges more often
 		if randf() > 0.5:
-			# Spawn on horizontal edges
 			var x_pos: float
 			if randf() > 0.5:
 				x_pos = spawn_area.position.x
@@ -120,7 +105,6 @@ func _get_random_spawn_position() -> Vector2:
 				randf_range(spawn_area.position.y, spawn_area.position.y + spawn_area.size.y)
 			)
 		else:
-			# Spawn on vertical edges
 			var y_pos: float
 			if randf() > 0.5:
 				y_pos = spawn_area.position.y
@@ -131,13 +115,11 @@ func _get_random_spawn_position() -> Vector2:
 				y_pos
 			)
 		
-		# Make sure it's away from center
 		if pos.distance_to(Vector2.ZERO) > 200:
 			return pos
 		
 		attempts += 1
 	
-	# Fallback
 	var fallback_x: float
 	var fallback_y: float
 	if randf() > 0.5:
@@ -153,7 +135,6 @@ func _get_random_spawn_position() -> Vector2:
 
 func _on_enemy_died() -> void:
 	"""Handle enemy death."""
-	# Enemy removes itself, we just track count
 	pass
 
 

@@ -1,4 +1,3 @@
-## Inventory manager: manages player's nutrition item inventory (8 slots).
 extends Node
 
 signal inventory_changed
@@ -7,12 +6,11 @@ signal item_removed(slot: int)
 
 const MAX_SLOTS: int = 8
 
-var inventory: Array[Dictionary] = []  # Array of item dictionaries from JSON
-var active_buffs: Array[Dictionary] = []  # Array of active buff dictionaries
+var inventory: Array[Dictionary] = []
+var active_buffs: Array[Dictionary] = []
 
 
 func _ready() -> void:
-	# Initialize empty inventory
 	inventory.resize(MAX_SLOTS)
 	for i in range(MAX_SLOTS):
 		inventory[i] = {}
@@ -69,7 +67,6 @@ func _remove_item_buff(item_data: Dictionary) -> void:
 		return
 	
 	var buff_name = item_data.buff.get("name", "")
-	# Remove matching buff from active_buffs by name
 	for i in range(active_buffs.size() - 1, -1, -1):
 		if active_buffs[i].get("name", "") == buff_name:
 			active_buffs.remove_at(i)
@@ -87,7 +84,6 @@ func get_item_count_by_type(type: String) -> int:
 
 func _evaluate_synergies() -> void:
 	"""Evaluate all synergies and apply/remove synergy buffs."""
-	# Load synergies from JSON
 	var synergies_path = "res://assets/data/synergies.json"
 	if not ResourceLoader.exists(synergies_path):
 		return
@@ -103,12 +99,10 @@ func _evaluate_synergies() -> void:
 	if not parse_result or not parse_result.has("synergies"):
 		return
 	
-	# For each synergy, check condition and apply/remove buff
 	for synergy_data in parse_result.synergies:
 		var condition = synergy_data.get("condition", "")
 		var should_activate = _check_synergy_condition(condition)
 		
-		# Check if synergy buff is already active
 		var synergy_name = synergy_data.get("name", "")
 		var already_active = false
 		for buff in active_buffs:
@@ -117,12 +111,10 @@ func _evaluate_synergies() -> void:
 				break
 		
 		if should_activate and not already_active:
-			# Apply synergy buff
 			if synergy_data.has("buff"):
 				active_buffs.append(synergy_data.buff.duplicate())
 				EventBus.push_notification(synergy_data.get("discovery_text", synergy_name + " activated!"))
 		elif not should_activate and already_active:
-			# Remove synergy buff
 			for i in range(active_buffs.size() - 1, -1, -1):
 				if active_buffs[i].get("name") == synergy_name:
 					active_buffs.remove_at(i)
@@ -131,22 +123,17 @@ func _evaluate_synergies() -> void:
 
 func _check_synergy_condition(condition: String) -> bool:
 	"""Evaluate synergy condition string (e.g., 'fruit_count >= 3')."""
-	# Simple condition parser for now
-	# Supports: type_count >= number, type_count == number, type_count <= number
-	
 	if condition.is_empty():
 		return false
 	
-	# Extract type and count from condition
 	var parts = condition.split(" ")
 	if parts.size() < 3:
 		return false
 	
-	var type_var = parts[0]  # e.g., "fruit_count"
-	var operator = parts[1]  # e.g., ">="
+	var type_var = parts[0]
+	var operator = parts[1]
 	var threshold = int(parts[2])
 	
-	# Extract type from variable name (remove "_count")
 	var item_type = type_var.replace("_count", "")
 	var actual_count = get_item_count_by_type(item_type)
 	

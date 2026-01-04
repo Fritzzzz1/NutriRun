@@ -1,9 +1,8 @@
-## Nutrition pickup entity: can be collected by player.
 extends Area2D
 
 signal picked_up(item_data: Dictionary)
 
-var item_data: Dictionary = {}  # Contains id, type, rarity, buff from JSON
+var item_data: Dictionary = {}
 var is_collected: bool = false
 
 @onready var sprite: Sprite2D = $Sprite2D
@@ -18,17 +17,14 @@ var pulse_tween: Tween
 
 
 func _ready() -> void:
-	# Connect body entered signal
 	body_entered.connect(_on_body_entered)
 	
-	# Create visual container if it doesn't exist
 	visual_container = get_node_or_null("VisualContainer")
 	if not visual_container:
 		visual_container = Node2D.new()
 		visual_container.name = "VisualContainer"
 		add_child(visual_container)
 	
-	# Visual will be set up in initialize() if item_data is provided
 	if not item_data.is_empty():
 		_setup_visual()
 		_play_spawn_animation()
@@ -37,7 +33,6 @@ func _ready() -> void:
 func initialize(data: Dictionary) -> void:
 	item_data = data
 	
-	# Ensure visual container exists
 	if not visual_container:
 		visual_container = get_node_or_null("VisualContainer")
 		if not visual_container:
@@ -54,34 +49,31 @@ func _setup_visual() -> void:
 	if item_data.is_empty():
 		return
 	
-	# Clear existing visuals
 	for child in visual_container.get_children():
 		child.queue_free()
 	
-	# Determine colors and shape based on item type and rarity
 	var base_color: Color
-	var shape_type: String = "circle"  # "circle" or "square"
+	var shape_type: String = "circle"
 	var size: float = 24.0
 	
 	if item_data.has("type"):
 		match item_data.type:
 			"fruit":
-				base_color = Color(1.0, 0.6, 0.2)  # Vibrant orange
+				base_color = Color(1.0, 0.6, 0.2)
 				shape_type = "circle"
 			"vegetable":
-				base_color = Color(0.2, 0.9, 0.4)  # Bright green
+				base_color = Color(0.2, 0.9, 0.4)
 				shape_type = "square"
 			"junk":
-				base_color = Color(0.9, 0.2, 0.3)  # Red
+				base_color = Color(0.9, 0.2, 0.3)
 				shape_type = "square"
 			_:
-				base_color = Color(0.6, 0.6, 0.9)  # Purple
+				base_color = Color(0.6, 0.6, 0.9)
 				shape_type = "circle"
 	else:
 		base_color = Color.GREEN
 		shape_type = "circle"
 	
-	# Adjust color based on rarity
 	if item_data.has("rarity"):
 		match item_data.rarity:
 			"rare":
@@ -91,7 +83,6 @@ func _setup_visual() -> void:
 				base_color = base_color.lerp(Color.WHITE, 0.15)
 				size = 28.0
 	
-	# Create glow effect (outer ring)
 	var glow_size = size + 12.0
 	glow_shape = ColorRect.new()
 	glow_shape.size = Vector2(glow_size, glow_size)
@@ -99,14 +90,12 @@ func _setup_visual() -> void:
 	glow_shape.position = Vector2(-glow_size / 2, -glow_size / 2)
 	visual_container.add_child(glow_shape)
 	
-	# Create main shape
 	main_shape = ColorRect.new()
 	main_shape.size = Vector2(size, size)
 	main_shape.color = base_color
 	main_shape.position = Vector2(-size / 2, -size / 2)
 	visual_container.add_child(main_shape)
 	
-	# Add icon/identifier (simple text for now)
 	var label = Label.new()
 	var item_id = item_data.get("id", "?")
 	if item_id.length() > 0:
@@ -121,7 +110,6 @@ func _setup_visual() -> void:
 	label.add_theme_color_override("font_color", Color.WHITE)
 	visual_container.add_child(label)
 	
-	# Start pulsing animation
 	_start_pulse_animation()
 
 
@@ -139,7 +127,6 @@ func _play_spawn_animation() -> void:
 	tween.tween_property(visual_container, "modulate:a", 1.0, 0.3)
 	tween.tween_method(_spawn_bounce, 0.0, 1.0, 0.3)
 	
-	# Play spawn sound
 	_play_spawn_sound()
 
 
@@ -167,14 +154,11 @@ func _start_pulse_animation() -> void:
 
 func _play_spawn_sound() -> void:
 	"""Play spawn sound effect."""
-	# Create a simple beep sound programmatically if no audio file exists
 	if not pickup_sound:
 		pickup_sound = AudioStreamPlayer2D.new()
 		pickup_sound.name = "PickupSound"
 		add_child(pickup_sound)
 	
-	# For now, we'll use a simple beep (can be replaced with actual audio file)
-	# This creates a pleasant "pop" sound
 	var stream = AudioStreamGenerator.new()
 	stream.mix_rate = 22050
 	pickup_sound.stream = stream
@@ -192,22 +176,18 @@ func _on_body_entered(body: Node) -> void:
 func _collect_item() -> void:
 	"""Handle item collection with animation and sound."""
 	if not visual_container:
-		# If no visual, just emit and remove
 		picked_up.emit(item_data)
 		queue_free()
 		return
 	
-	# Play collection animation
 	var tween = create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(visual_container, "scale", Vector2(1.5, 1.5), 0.2)
 	tween.tween_property(visual_container, "modulate:a", 0.0, 0.2)
 	tween.tween_property(self, "position:y", position.y - 30, 0.2)
 	
-	# Play pickup sound
 	_play_pickup_sound()
 	
-	# Emit signal and remove after animation
 	await tween.finished
 	picked_up.emit(item_data)
 	queue_free()
@@ -215,7 +195,6 @@ func _collect_item() -> void:
 
 func _play_pickup_sound() -> void:
 	"""Play pickup sound effect."""
-	# Create pickup sound (can be replaced with actual audio file)
 	var stream = AudioStreamGenerator.new()
 	stream.mix_rate = 22050
 	if not pickup_sound:

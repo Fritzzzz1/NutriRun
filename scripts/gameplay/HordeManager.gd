@@ -1,11 +1,10 @@
-## Horde manager: manages the vegetable squad, spawning and AI coordination.
 extends Node2D
 
 signal horde_member_died
 signal horde_size_changed(new_size: int)
 
 var vegetable_units: Array[Node2D] = []
-var max_horde_size: int = 5  # Start with 5 vegetables
+var max_horde_size: int = 5
 var base_vegetable_stats: Dictionary = {
 	"tomato": {"hp": 30, "damage": 5, "speed": 100.0},
 	"carrot": {"hp": 20, "damage": 8, "speed": 120.0},
@@ -18,10 +17,8 @@ var gameplay_layer: Node2D = null
 
 
 func _ready() -> void:
-	# Find gameplay layer
 	_find_gameplay_layer()
 	
-	# Spawn initial horde
 	spawn_initial_horde()
 
 
@@ -43,7 +40,6 @@ func spawn_initial_horde() -> void:
 		push_error("HordeManager: Gameplay layer not found!")
 		return
 	
-	# Spawn a mix of vegetables
 	var types_to_spawn = ["tomato", "tomato", "carrot", "pepper", "lettuce"]
 	
 	for i in range(min(max_horde_size, types_to_spawn.size())):
@@ -59,7 +55,7 @@ func _get_spawn_position_around_player(index: int) -> Vector2:
 	
 	var player = players[0]
 	var angle = (float(index) / float(max_horde_size)) * TAU
-	var radius = 60.0 + (index * 10.0)  # Stagger positions
+	var radius = 60.0 + (index * 10.0)
 	var offset = Vector2(cos(angle), sin(angle)) * radius
 	
 	return player.global_position + offset
@@ -70,31 +66,25 @@ func spawn_vegetable(type: String, position: Vector2) -> Node2D:
 	if not gameplay_layer:
 		return null
 	
-	# Create vegetable unit
 	var vegetable = CharacterBody2D.new()
 	vegetable.name = "Vegetable_" + type.capitalize()
 	vegetable.position = position
 	
-	# Add script
 	var script = load("res://scripts/gameplay/VegetableUnit.gd")
 	vegetable.set_script(script)
 	
-	# Get stats for this type
 	var stats = base_vegetable_stats.get(type, base_vegetable_stats["tomato"])
 	
-	# Add collision
 	var collision = CollisionShape2D.new()
 	var shape = CircleShape2D.new()
 	shape.radius = 14.0
 	collision.shape = shape
 	vegetable.add_child(collision)
 	
-	# Add visual container
 	var visual_container = Node2D.new()
 	visual_container.name = "VisualContainer"
 	vegetable.add_child(visual_container)
 	
-	# Add health bar
 	var health_bar = ProgressBar.new()
 	health_bar.name = "HealthBar"
 	health_bar.size = Vector2(30, 5)
@@ -102,18 +92,14 @@ func spawn_vegetable(type: String, position: Vector2) -> Node2D:
 	health_bar.show_percentage = false
 	vegetable.add_child(health_bar)
 	
-	# Add to gameplay layer
 	gameplay_layer.add_child(vegetable)
 	
-	# Initialize vegetable
 	if vegetable.has_method("initialize"):
 		vegetable.initialize(type, stats.hp, stats.damage, stats.speed)
 	
-	# Connect signals
 	if vegetable.has_signal("vegetable_died"):
 		vegetable.vegetable_died.connect(_on_vegetable_died)
 	
-	# Track vegetable
 	vegetable_units.append(vegetable)
 	horde_size_changed.emit(vegetable_units.size())
 	
@@ -122,7 +108,6 @@ func spawn_vegetable(type: String, position: Vector2) -> Node2D:
 
 func _on_vegetable_died() -> void:
 	"""Handle when a vegetable dies."""
-	# Clean up dead vegetables from tracking
 	vegetable_units = vegetable_units.filter(func(veg): return is_instance_valid(veg))
 	horde_size_changed.emit(vegetable_units.size())
 	horde_member_died.emit()
@@ -130,7 +115,6 @@ func _on_vegetable_died() -> void:
 
 func get_horde_size() -> int:
 	"""Get current number of alive vegetables."""
-	# Clean up dead vegetables
 	vegetable_units = vegetable_units.filter(func(veg): return is_instance_valid(veg))
 	return vegetable_units.size()
 
@@ -143,8 +127,6 @@ func get_alive_vegetables() -> Array[Node2D]:
 
 func apply_buffs_to_horde() -> void:
 	"""Apply nutrition buffs to all vegetables in horde."""
-	# This is handled automatically by VegetableUnit._on_inventory_changed
-	# But we can trigger it manually if needed
 	for veg in vegetable_units:
 		if is_instance_valid(veg) and veg.has_method("_on_inventory_changed"):
 			veg._on_inventory_changed()

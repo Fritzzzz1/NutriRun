@@ -1,4 +1,3 @@
-## Player controller: handles movement, health, and basic player state.
 extends CharacterBody2D
 
 signal health_changed(current: int, max_health: int)
@@ -10,7 +9,6 @@ var max_health: int = 100
 var current_health: int = 100
 var speed: int = 200
 
-# Damage feedback
 var is_invincible: bool = false
 var is_dying: bool = false
 var invincibility_duration: float = 0.8
@@ -22,33 +20,26 @@ var knockback_decay: float = 10.0
 @onready var sprite: ColorRect = $Sprite
 @onready var hurtbox: Area2D = $Hurtbox
 
-# Character stats from GameState
 var character_data: Dictionary = {}
 
-# World bounds for movement clamping
 var world_bounds: Rect2 = Rect2()
-var player_half_size: float = 16.0  # Half of player collision size
-var bounce_force: float = 200.0  # Force applied when hitting boundary
-var bounce_cooldown: float = 0.0  # Prevent multiple bounces
+var player_half_size: float = 16.0
+var bounce_force: float = 200.0
+var bounce_cooldown: float = 0.0
 
 
 func _ready() -> void:
-	# Load character stats from GameState
 	_load_character_stats()
 	
-	# Store base stats
 	base_max_health = max_health
 	base_speed = speed
 	
-	# Initialize health bar
 	if health_bar:
 		health_bar.max_value = max_health
 		health_bar.value = current_health
 	
-	# Connect to inventory changes to update stats
 	InventoryManager.inventory_changed.connect(_on_inventory_changed)
 	
-	# Get world bounds from camera
 	call_deferred("_find_world_bounds")
 	
 	EventBus.push_notification("Player spawned (HP: %d/%d)" % [current_health, max_health])
@@ -64,10 +55,8 @@ func _find_world_bounds() -> void:
 
 
 func _load_character_stats() -> void:
-	# Get selected character from GameState
 	var char_id: String = GameState.selected_character_id
 	
-	# Load character data from JSON (placeholder - will be replaced with proper data loading)
 	var char_stats_path = "res://assets/data/character_stats.json"
 	if ResourceLoader.exists(char_stats_path):
 		var file = FileAccess.open(char_stats_path, FileAccess.READ)
@@ -82,39 +71,32 @@ func _load_character_stats() -> void:
 						character_data = char
 						max_health = char.get("hp", 100)
 						current_health = max_health
-						speed = char.get("speed", 200) * 10  # Convert to pixels/second
-						# Apply 1.5x speed multiplier
+						speed = char.get("speed", 200) * 10
 						speed = int(speed * 1.5)
 						break
 	
-	# Fallback if no data found
 	if character_data.is_empty():
 		max_health = 100
 		current_health = 100
 		speed = 200
 	
-	# Apply 1.5x speed multiplier to all cases
 	speed = int(speed * 1.5)
 
 
 func _on_inventory_changed() -> void:
 	"""Update player stats based on active buffs."""
-	# Recalculate max health with multipliers
 	var health_multiplier = InventoryManager.get_stat_multiplier("max_health")
 	var new_max_health = int(base_max_health * health_multiplier)
 	
-	# Adjust current health proportionally
 	if max_health > 0:
 		var health_ratio = float(current_health) / float(max_health)
 		current_health = int(new_max_health * health_ratio)
 	
 	max_health = new_max_health
 	
-	# Update speed with multipliers
 	var speed_multiplier = InventoryManager.get_stat_multiplier("speed")
 	speed = int(base_speed * speed_multiplier)
 	
-	# Update health bar
 	if health_bar:
 		health_bar.max_value = max_health
 		health_bar.value = current_health
@@ -125,7 +107,6 @@ func _physics_process(delta: float) -> void:
 	_apply_knockback(delta)
 	_clamp_to_world_bounds()
 	
-	# Decay bounce cooldown
 	if bounce_cooldown > 0:
 		bounce_cooldown -= delta
 
@@ -133,7 +114,6 @@ func _physics_process(delta: float) -> void:
 func _handle_movement(delta: float) -> void:
 	var input_vector := Vector2.ZERO
 	
-	# WASD movement
 	if Input.is_action_pressed("ui_up") or Input.is_key_pressed(KEY_W):
 		input_vector.y -= 1
 	if Input.is_action_pressed("ui_down") or Input.is_key_pressed(KEY_S):
@@ -143,7 +123,6 @@ func _handle_movement(delta: float) -> void:
 	if Input.is_action_pressed("ui_right") or Input.is_key_pressed(KEY_D):
 		input_vector.x += 1
 	
-	# Normalize diagonal movement
 	if input_vector.length() > 0:
 		input_vector = input_vector.normalized()
 		velocity = input_vector * speed + knockback_velocity
@@ -171,53 +150,46 @@ func _clamp_to_world_bounds() -> void:
 	var bounce_dir = Vector2.ZERO
 	var hit_boundary = false
 	
-	# Check horizontal boundaries
 	if global_position.x < min_x:
 		global_position.x = min_x
-		bounce_dir.x = 1.0  # Bounce right
+		bounce_dir.x = 1.0
 		hit_boundary = true
 	elif global_position.x > max_x:
 		global_position.x = max_x
-		bounce_dir.x = -1.0  # Bounce left
+		bounce_dir.x = -1.0
 		hit_boundary = true
 	
-	# Check vertical boundaries
 	if global_position.y < min_y:
 		global_position.y = min_y
-		bounce_dir.y = 1.0  # Bounce down
+		bounce_dir.y = 1.0
 		hit_boundary = true
 	elif global_position.y > max_y:
 		global_position.y = max_y
-		bounce_dir.y = -1.0  # Bounce up
+		bounce_dir.y = -1.0
 		hit_boundary = true
 	
-	# Apply bounce if we hit a boundary and cooldown is ready
 	if hit_boundary and bounce_cooldown <= 0:
 		_apply_boundary_bounce(bounce_dir.normalized())
-		bounce_cooldown = 0.3  # Prevent rapid bouncing
+		bounce_cooldown = 0.3
 
 
 func _apply_boundary_bounce(direction: Vector2) -> void:
 	"""Apply a bounce effect when hitting world boundary."""
-	# Add bounce to knockback velocity
 	knockback_velocity = direction * bounce_force
 	
-	# Visual feedback - quick squeeze and flash
 	if sprite:
 		var tween = create_tween()
 		tween.set_parallel(true)
 		
-		# Squeeze effect (compress in hit direction, expand perpendicular)
 		var squeeze_scale: Vector2
 		if abs(direction.x) > abs(direction.y):
-			squeeze_scale = Vector2(0.7, 1.3)  # Horizontal hit
+			squeeze_scale = Vector2(0.7, 1.3)
 		else:
-			squeeze_scale = Vector2(1.3, 0.7)  # Vertical hit
+			squeeze_scale = Vector2(1.3, 0.7)
 		
 		tween.tween_property(sprite, "scale", squeeze_scale, 0.05)
 		tween.chain().tween_property(sprite, "scale", Vector2.ONE, 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_ELASTIC)
 		
-		# Brief color flash
 		var original_color = sprite.color
 		tween.tween_property(sprite, "color", Color(1.0, 0.8, 0.4), 0.05)
 		tween.tween_property(sprite, "color", original_color, 0.1)
@@ -228,7 +200,6 @@ func _on_hurtbox_area_entered(area: Area2D) -> void:
 	if is_invincible:
 		return
 	
-	# Check if it's an enemy hitbox
 	var parent = area.get_parent()
 	if parent and parent.is_in_group("enemies"):
 		var damage = parent.damage if "damage" in parent else 10
@@ -244,20 +215,16 @@ func take_damage(amount: int, knockback_direction: Vector2 = Vector2.ZERO) -> vo
 	_update_health_display()
 	health_changed.emit(current_health, max_health)
 	
-	# Check for death BEFORE starting invincibility
 	if current_health <= 0:
 		_die()
 		return
 	
-	# Show damage number
 	if DamageNumbers:
 		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, -20))
 	
-	# Apply knockback
 	if knockback_direction != Vector2.ZERO:
 		knockback_velocity = knockback_direction * knockback_force
 	
-	# Visual feedback
 	_flash_damage()
 	_start_invincibility()
 
@@ -270,7 +237,6 @@ func _flash_damage() -> void:
 	var original_color = sprite.color
 	var tween = create_tween()
 	
-	# Flash to white then red then back
 	tween.tween_property(sprite, "color", Color.WHITE, 0.05)
 	tween.tween_property(sprite, "color", Color(1.0, 0.3, 0.3), 0.1)
 	tween.tween_property(sprite, "color", original_color, 0.15)
@@ -280,17 +246,14 @@ func _start_invincibility() -> void:
 	"""Start invincibility frames with flashing effect."""
 	is_invincible = true
 	
-	# Create flashing effect during i-frames
 	var flash_tween = create_tween()
 	flash_tween.set_loops(int(invincibility_duration / 0.15))
 	flash_tween.tween_property(sprite, "modulate:a", 0.3, 0.075)
 	flash_tween.tween_property(sprite, "modulate:a", 1.0, 0.075)
 	
-	# End invincibility after duration
 	await get_tree().create_timer(invincibility_duration).timeout
 	is_invincible = false
 	
-	# Ensure sprite is fully visible
 	if sprite:
 		sprite.modulate.a = 1.0
 
@@ -300,7 +263,6 @@ func heal(amount: int) -> void:
 	_update_health_display()
 	health_changed.emit(current_health, max_health)
 	
-	# Show heal number
 	if DamageNumbers:
 		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, -20), null, false, true)
 
@@ -312,25 +274,20 @@ func _update_health_display() -> void:
 
 func _die() -> void:
 	"""Handle player death with animation."""
-	# Prevent multiple death calls
 	if is_dying:
 		return
 	is_dying = true
-	is_invincible = true  # Prevent further damage
+	is_invincible = true
 	
 	EventBus.push_notification("Player died!")
 	
-	# Disable hurtbox
 	if hurtbox:
 		hurtbox.set_deferred("monitoring", false)
 	
-	# Disable movement
 	set_physics_process(false)
 	
-	# Emit signal immediately so death screen appears right away
 	player_died.emit()
 	
-	# Play death animation in background (non-blocking)
 	_play_death_animation()
 
 
@@ -339,19 +296,16 @@ func _play_death_animation() -> void:
 	if not sprite:
 		return
 	
-	# Flash rapidly immediately
 	var flash_tween = create_tween()
 	for i in range(6):
 		flash_tween.tween_property(sprite, "modulate", Color(2.0, 0.5, 0.5, 1.0), 0.05)
 		flash_tween.tween_property(sprite, "modulate", Color(0.3, 0.1, 0.1, 1.0), 0.05)
 	await flash_tween.finished
 	
-	# Expand and fade
 	var death_tween = create_tween()
 	death_tween.set_parallel(true)
 	death_tween.tween_property(sprite, "scale", Vector2(2.0, 2.0), 0.4).set_ease(Tween.EASE_OUT)
 	death_tween.tween_property(sprite, "modulate:a", 0.0, 0.4)
 	death_tween.tween_property(sprite, "rotation", randf_range(-0.5, 0.5), 0.4)
 	
-	# Float up slightly
 	death_tween.tween_property(self, "position:y", position.y - 30, 0.4).set_ease(Tween.EASE_OUT)

@@ -1,4 +1,3 @@
-## Centralized scene transitions (autoload).
 extends Node
 
 const MAIN_MENU_SCENE := "res://scenes/ui/main_menu.tscn"

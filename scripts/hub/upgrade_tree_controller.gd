@@ -1,4 +1,3 @@
-## Upgrade tree controller: manages hub upgrades.
 extends Control
 
 @onready var horde_size_button: Button = $VBox/HordeSizeButton
@@ -49,7 +48,6 @@ func _on_capacity_pressed() -> void:
 	if GameState.harvest_points >= cost and capacity_level < 2:
 		GameState.harvest_points -= cost
 		capacity_level += 1
-		# Increase inventory capacity
 		InventoryManager.MAX_SLOTS += 2
 		InventoryManager._resize_inventory()
 		EventBus.push_notification("Inventory capacity upgraded! (+2 slots)")

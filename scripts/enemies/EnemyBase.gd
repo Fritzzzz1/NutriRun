@@ -1,4 +1,3 @@
-## Base enemy class: handles movement, health, and combat.
 extends CharacterBody2D
 
 signal enemy_died
@@ -11,7 +10,6 @@ var damage: int = 10
 var attack_cooldown: float = 1.0
 var attack_timer: float = 0.0
 
-# Ranged attack settings
 var can_shoot: bool = true
 var projectile_speed: float = 250.0
 var shoot_range: float = 300.0
@@ -30,12 +28,9 @@ var hitbox: Area2D = null
 func _ready() -> void:
 	current_health = max_health
 	
-	# Set collision layer to enemies (layer 3 = 4)
-	# Mask only world (layer 1 = 1) - NOT player, so we don't get stuck
 	collision_layer = 4
-	collision_mask = 1  # Only collide with world, not player
+	collision_mask = 1
 	
-	# Create visual container if it doesn't exist
 	visual_container = get_node_or_null("VisualContainer")
 	if not visual_container:
 		visual_container = Node2D.new()
@@ -46,10 +41,8 @@ func _ready() -> void:
 	_setup_hitbox()
 	_find_player()
 	
-	# Add to enemies group
 	add_to_group("enemies")
 	
-	# Randomize initial shoot timer so enemies don't all shoot at once
 	shoot_timer = randf_range(0.5, shoot_cooldown)
 
 
@@ -64,11 +57,9 @@ func _physics_process(delta: float) -> void:
 		var direction = (player_ref.global_position - global_position).normalized()
 		var distance = global_position.distance_to(player_ref.global_position)
 		
-		# Move towards player
 		velocity = direction * speed
 		move_and_slide()
 		
-		# Try to shoot if in range
 		if can_shoot and shoot_timer <= 0 and distance < shoot_range and distance > 50:
 			_shoot_projectile(direction)
 			shoot_timer = shoot_cooldown
@@ -84,10 +75,8 @@ func _shoot_projectile(direction: Vector2) -> void:
 	projectile.speed = projectile_speed
 	projectile.damage = damage
 	
-	# Add to the same parent (gameplay layer)
 	get_parent().add_child(projectile)
 	
-	# Visual feedback for shooting
 	_shoot_animation()
 
 
@@ -97,26 +86,22 @@ func _create_projectile() -> Node2D:
 	proj.name = "EnemyProjectile"
 	proj.add_to_group("enemy_projectiles")
 	
-	# Collision: layer 5 (enemy_hitbox), mask layer 4 (player_hurtbox)
 	proj.collision_layer = 16
 	proj.collision_mask = 8
 	proj.monitoring = true
 	
-	# Add collision shape
 	var collision_shape = CollisionShape2D.new()
 	var shape = CircleShape2D.new()
 	shape.radius = 6.0
 	collision_shape.shape = shape
 	proj.add_child(collision_shape)
 	
-	# Add visual
 	var visual = ColorRect.new()
 	visual.size = Vector2(12, 12)
 	visual.position = Vector2(-6, -6)
-	visual.color = Color(1.0, 0.3, 0.1)  # Orange-red
+	visual.color = Color(1.0, 0.3, 0.1)
 	proj.add_child(visual)
 	
-	# Add glow
 	var glow = ColorRect.new()
 	glow.size = Vector2(16, 16)
 	glow.position = Vector2(-8, -8)
@@ -124,7 +109,6 @@ func _create_projectile() -> Node2D:
 	glow.z_index = -1
 	proj.add_child(glow)
 	
-	# Add script behavior
 	var script = GDScript.new()
 	script.source_code = """
 extends Area2D
@@ -152,7 +136,6 @@ func _on_area_entered(area: Area2D) -> void:
 		_destroy()
 
 func _destroy() -> void:
-	# Small explosion effect
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2(1.5, 1.5), 0.1)
 	tween.parallel().tween_property(self, "modulate:a", 0.0, 0.1)
@@ -222,22 +205,19 @@ func _setup_hitbox() -> void:
 		hitbox = Area2D.new()
 		hitbox.name = "Hitbox"
 		
-		# Layer 5 (enemy_hitbox), mask layer 4 (player_hurtbox)
 		hitbox.collision_layer = 16
 		hitbox.collision_mask = 8
 		hitbox.monitoring = true
 		hitbox.monitorable = true
 		
-		# Create hitbox collision shape (slightly larger than body for contact damage)
 		var hitbox_collision = CollisionShape2D.new()
 		var hitbox_shape = CircleShape2D.new()
-		hitbox_shape.radius = 24.0  # Slightly larger for contact damage
+		hitbox_shape.radius = 24.0
 		hitbox_collision.shape = hitbox_shape
 		hitbox.add_child(hitbox_collision)
 		
 		add_child(hitbox)
 	
-	# Connect hitbox signals
 	if not hitbox.area_entered.is_connected(_on_hitbox_area_entered):
 		hitbox.area_entered.connect(_on_hitbox_area_entered)
 
@@ -260,7 +240,6 @@ func _deal_contact_damage(player: Node2D) -> void:
 		enemy_hit_player.emit()
 		attack_timer = attack_cooldown
 		
-		# Visual feedback for attack
 		_attack_animation()
 
 
@@ -279,12 +258,10 @@ func take_damage(amount: int) -> void:
 	current_health = max(0, current_health - amount)
 	_update_health_display()
 	
-	# Show damage number
 	if DamageNumbers:
-		var is_crit = amount >= 20  # Show as critical for big hits
+		var is_crit = amount >= 20
 		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, -20), null, is_crit)
 	
-	# Flash red when hit
 	_flash_damage()
 	
 	if current_health <= 0:
@@ -312,11 +289,9 @@ func _die() -> void:
 	is_active = false
 	enemy_died.emit()
 	
-	# Disable hitbox
 	if hitbox:
 		hitbox.set_deferred("monitoring", false)
 	
-	# Death animation
 	if visual_container:
 		var tween = create_tween()
 		tween.set_parallel(true)
