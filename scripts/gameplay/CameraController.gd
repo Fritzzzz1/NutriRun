@@ -9,6 +9,7 @@ enum CameraMode {
 @export var viewport_margin: float = 300.0
 @export_range(3.0, 10.0, 0.5) var smooth_speed: float = 4.5
 @export var smooth_camera: bool = true
+@export_range(1.0, 3.0, 0.1) var camera_zoom: float = 1.5
 
 var target_position: Vector2
 var world_bounds: Rect2
@@ -19,15 +20,18 @@ var viewport_size: Vector2
 
 func _ready() -> void:
 	add_to_group("cameras")
-	
+
+	# Apply zoom (higher = more zoomed in = player appears larger)
+	zoom = Vector2(camera_zoom, camera_zoom)
+
 	var viewport = get_viewport()
 	if viewport:
-		viewport_size = viewport.get_visible_rect().size
-	
+		viewport_size = viewport.get_visible_rect().size / camera_zoom
+
 	target_position = global_position
-	
+
 	_find_player()
-	
+
 	if player:
 		global_position = player.global_position
 		target_position = global_position
@@ -165,4 +169,14 @@ func get_visible_area() -> Rect2:
 		global_position - half_viewport,
 		viewport_size
 	)
+
+
+func set_zoom_level(new_zoom: float) -> void:
+	"""Change camera zoom at runtime."""
+	camera_zoom = new_zoom
+	zoom = Vector2(camera_zoom, camera_zoom)
+
+	var viewport = get_viewport()
+	if viewport:
+		viewport_size = viewport.get_visible_rect().size / camera_zoom
 
