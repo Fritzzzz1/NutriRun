@@ -23,3 +23,4 @@ func set_item(item_data: Dictionary) -> void:
 			_:
 				modulate = Color.WHITE
 
+

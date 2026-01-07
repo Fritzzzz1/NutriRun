@@ -1,4 +1,3 @@
-## Global signal hub (autoload) to decouple systems.
 extends Node
 
 signal save_requested

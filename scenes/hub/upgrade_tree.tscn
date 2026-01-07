@@ -48,3 +48,4 @@ text = "Inventory Capacity +2 (Cost: 150)"
 [connection signal="pressed" from="VBox/HordeSizeButton" to="." method="_on_horde_size_pressed"]
 [connection signal="pressed" from="VBox/CapacityButton" to="." method="_on_capacity_pressed"]
 
+

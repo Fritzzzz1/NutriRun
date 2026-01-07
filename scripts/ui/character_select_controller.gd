@@ -16,7 +16,7 @@ func _on_monster_pressed() -> void:
 
 
 func _on_snowman_pressed() -> void:
-	_select("snowman")
+	_select("lizardman")
 
 
 func _on_continue_pressed() -> void:

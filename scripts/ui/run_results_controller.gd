@@ -1,4 +1,3 @@
-## Run results screen controller: displays run statistics and awards.
 extends Control
 
 @onready var rooms_label: Label = $VBox/RoomsLabel
@@ -15,20 +14,16 @@ var points_earned: int = 0
 
 
 func _ready() -> void:
-	# Load run statistics
 	rooms_cleared = GameState.rooms_cleared_this_run
 	enemies_defeated = GameState.enemies_defeated_this_run
 	items_collected = GameState.items_collected_this_run
 	
-	# Calculate points (should match calculation in gameplay_root_controller)
 	points_earned = (rooms_cleared * 10) + (enemies_defeated * 5) + (items_collected * 2)
 	if GameState.current_room > 10:
 		points_earned += 50
 	
-	# Update labels
 	_update_display()
 	
-	# Connect buttons
 	if return_button:
 		return_button.pressed.connect(_on_return_pressed)
 	if play_again_button:

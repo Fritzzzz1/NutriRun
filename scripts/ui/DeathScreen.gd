@@ -1,4 +1,3 @@
-## DeathScreen: Shown when player dies, displays run stats and return option.
 extends CanvasLayer
 
 signal continue_pressed
@@ -16,22 +15,17 @@ var run_stats: Dictionary = {}
 
 
 func _ready() -> void:
-	# Start hidden
 	overlay.modulate.a = 0
 	container.modulate.a = 0
 	container.scale = Vector2(0.8, 0.8)
 	visible = false
 	
-	# Make overlay ignore mouse input so clicks pass through to buttons
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	# Connect button signal
 	if continue_button:
 		var error = continue_button.pressed.connect(_on_continue_pressed)
 		if error != OK:
 			push_error("Failed to connect continue_button.pressed signal: " + str(error))
-		else:
-			print("DeathScreen: Successfully connected button signal")
 	else:
 		push_error("DeathScreen: continue_button is null!")
 
@@ -41,48 +35,38 @@ func show_death_screen(stats: Dictionary = {}) -> void:
 	run_stats = stats
 	visible = true
 	
-	# Make button visible and clickable immediately
 	continue_button.visible = true
 	continue_button.modulate.a = 1.0
 	continue_button.disabled = false
 	
-	# Populate stats
 	_populate_stats()
 	
-	# Animate in
 	var tween = create_tween()
 	tween.set_parallel(true)
 	
-	# Fade in overlay
 	tween.tween_property(overlay, "modulate:a", 1.0, fade_duration)
 	
-	# Scale and fade in container
 	tween.tween_property(container, "modulate:a", 1.0, fade_duration).set_delay(text_delay)
 	tween.tween_property(container, "scale", Vector2.ONE, fade_duration * 1.5).set_delay(text_delay).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 	
-	# Animate death text
 	await tween.finished
 	_animate_death_text()
 
 
 func _populate_stats() -> void:
 	"""Populate the stats display."""
-	# Clear existing stats
 	for child in stats_container.get_children():
 		child.queue_free()
 	
-	# Add stat lines
 	_add_stat_line("Rooms Cleared", str(run_stats.get("rooms_cleared", 0)))
 	_add_stat_line("Enemies Defeated", str(run_stats.get("enemies_defeated", 0)))
 	_add_stat_line("Items Collected", str(run_stats.get("items_collected", 0)))
 	_add_stat_line("Time Survived", _format_time(run_stats.get("time_survived", 0.0)))
 	
-	# Add separator
 	var separator = HSeparator.new()
 	separator.add_theme_constant_override("separation", 10)
 	stats_container.add_child(separator)
 	
-	# Add total score
 	var score = _calculate_score()
 	_add_stat_line("TOTAL SCORE", str(score), true)
 
@@ -116,13 +100,11 @@ func _add_stat_line(label_text: String, value_text: String, is_highlight: bool =
 	hbox.add_child(value)
 	stats_container.add_child(hbox)
 	
-	# Start invisible for animation
 	hbox.modulate.a = 0
 
 
 func _animate_death_text() -> void:
 	"""Animate the death text and stats appearing."""
-	# Shake the death label
 	var original_pos = death_label.position
 	var shake_tween = create_tween()
 	for i in range(5):
@@ -130,7 +112,6 @@ func _animate_death_text() -> void:
 		shake_tween.tween_property(death_label, "position", original_pos + offset, 0.05)
 	shake_tween.tween_property(death_label, "position", original_pos, 0.05)
 	
-	# Fade in stats one by one
 	await get_tree().create_timer(0.3).timeout
 	
 	for child in stats_container.get_children():
@@ -138,8 +119,6 @@ func _animate_death_text() -> void:
 		stat_tween.tween_property(child, "modulate:a", 1.0, 0.2)
 		await get_tree().create_timer(0.1).timeout
 	
-	# Button is already visible and clickable from show_death_screen()
-	# Just ensure it's fully opaque
 	continue_button.modulate.a = 1.0
 
 
@@ -162,16 +141,9 @@ func _format_time(seconds: float) -> String:
 
 func _on_continue_pressed() -> void:
 	"""Handle continue button press."""
-	print("DeathScreen: Continue button pressed!")
-	
-	# Disable button to prevent multiple clicks
 	continue_button.disabled = true
-	
-	# Emit signal immediately (don't wait for fade)
-	print("DeathScreen: Emitting continue_pressed signal")
 	continue_pressed.emit()
 	
-	# Fade out in background (non-blocking)
 	var tween = create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, 0.3)
 	await tween.finished

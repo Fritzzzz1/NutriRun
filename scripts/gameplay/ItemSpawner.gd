@@ -1,13 +1,12 @@
-## Item spawner: automatically spawns nutrition items at intervals.
 extends Node2D
 
 signal item_spawned(item_node: Node2D)
 
-var spawn_interval: float = 3.0  # Seconds between spawns
+var spawn_interval: float = 3.0
 var spawn_timer: float = 0.0
 var items_data: Array = []
-var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)  # Large spawn area across the arena
-var max_items_on_screen: int = 15  # Max concurrent items
+var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)
+var max_items_on_screen: int = 15
 var current_items: Array[Node2D] = []
 
 var gameplay_layer: Node2D = null
@@ -15,9 +14,7 @@ var gameplay_layer: Node2D = null
 
 func _ready() -> void:
 	_load_items_data()
-	# Find gameplay layer
 	_find_gameplay_layer()
-	# Start spawning after a short delay
 	spawn_timer = spawn_interval * 0.5
 
 
@@ -26,11 +23,9 @@ func _find_gameplay_layer() -> void:
 	var parent = get_parent()
 	if parent:
 		gameplay_layer = parent
-		# If parent is GameplayLayer, we're good. Otherwise search for it.
 		if parent.name != "GameplayLayer":
 			gameplay_layer = parent.get_node_or_null("GameplayLayer")
 			if not gameplay_layer:
-				# Try to find it in the tree
 				var root = get_tree().root
 				gameplay_layer = root.get_node_or_null("GameplayRoot/GameplayLayer")
 
@@ -38,10 +33,8 @@ func _find_gameplay_layer() -> void:
 func _process(delta: float) -> void:
 	spawn_timer -= delta
 	
-	# Remove null items from tracking
 	current_items = current_items.filter(func(item): return is_instance_valid(item))
 	
-	# Spawn new item if timer expired and we're under the limit
 	if spawn_timer <= 0.0 and current_items.size() < max_items_on_screen:
 		_spawn_random_item()
 		spawn_timer = spawn_interval
@@ -75,13 +68,10 @@ func _spawn_random_item() -> void:
 	if items_data.is_empty():
 		return
 	
-	# Pick random item
 	var random_item = items_data[randi() % items_data.size()]
 	
-	# Get random position within spawn area (avoid player spawn area)
 	var spawn_pos = _get_random_spawn_position()
 	
-	# Load and instantiate pickup
 	var pickup_scene = load("res://scenes/entities/NutritionPickup.tscn")
 	if not pickup_scene:
 		push_error("Failed to load NutritionPickup scene!")
@@ -92,7 +82,6 @@ func _spawn_random_item() -> void:
 	pickup.position = spawn_pos
 	pickup.picked_up.connect(_on_item_picked_up)
 	
-	# Add to gameplay layer
 	if gameplay_layer:
 		gameplay_layer.add_child(pickup)
 		current_items.append(pickup)
@@ -112,13 +101,11 @@ func _get_random_spawn_position() -> Vector2:
 			randf_range(spawn_area.position.y, spawn_area.position.y + spawn_area.size.y)
 		)
 		
-		# Avoid center area (where player spawns)
 		if pos.distance_to(Vector2.ZERO) > 150:
 			return pos
 		
 		attempts += 1
 	
-	# Fallback: spawn at edge
 	var fallback_x: float
 	if randf() > 0.5:
 		fallback_x = spawn_area.position.x
@@ -132,7 +119,6 @@ func _get_random_spawn_position() -> Vector2:
 
 func _on_item_picked_up(item_data: Dictionary) -> void:
 	"""Handle when an item is picked up (remove from tracking)."""
-	# Item will remove itself, we just need to update our count
 	pass
 
 

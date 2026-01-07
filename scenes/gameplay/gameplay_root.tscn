@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/gameplay_root_controller.gd" id="1_k1j6r"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_panel.tscn" id="11_debug"]
 [ext_resource type="PackedScene" path="res://scenes/gameplay/Room.tscn" id="2_room"]
 [ext_resource type="PackedScene" path="res://scenes/entities/Player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/inventory_ui.tscn" id="4_inventory"]
@@ -23,6 +24,7 @@ position = Vector2(0, 0)
 
 [node name="Camera2D" type="Camera2D" parent="GameplayLayer"]
 script = ExtResource("8_camera")
+camera_zoom = 2
 current = true
 
 [node name="ItemSpawner" type="Node2D" parent="GameplayLayer"]
@@ -66,7 +68,11 @@ bar_height = 24.0
 
 [node name="ReturnButton" type="Button" parent="UILayer/UI/TopLeft/VBox"]
 layout_mode = 2
+focus_mode = 0
 text = "Return to Hub"
+
+[node name="DebugPanel" parent="UILayer/UI/TopLeft/VBox" instance=ExtResource("11_debug")]
+layout_mode = 2
 
 [node name="TopRight" type="MarginContainer" parent="UILayer/UI"]
 layout_mode = 1
@@ -96,3 +102,5 @@ layout_mode = 2
 [node name="ItemPickupDisplay" parent="UILayer" instance=ExtResource("7_item_display")]
 
 [connection signal="pressed" from="UILayer/UI/TopLeft/VBox/ReturnButton" to="." method="_on_return_to_hub_pressed"]
+[connection signal="invincibility_toggled" from="UILayer/UI/TopLeft/VBox/DebugPanel" to="." method="_on_debug_invincible_toggled"]
+[connection signal="camera_zoom_changed" from="UILayer/UI/TopLeft/VBox/DebugPanel" to="." method="_on_debug_camera_zoom_changed"]

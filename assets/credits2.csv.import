@@ -1,0 +1,17 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://cug3qymljwsib"
+
+[deps]
+
+files=["res://assets/credits2.notes.translation", "res://assets/credits2.authors.translation", "res://assets/credits2.licenses.translation", "res://assets/credits2.urls.translation"]
+
+source_file="res://assets/credits2.csv"
+dest_files=["res://assets/credits2.notes.translation", "res://assets/credits2.authors.translation", "res://assets/credits2.licenses.translation", "res://assets/credits2.urls.translation"]
+
+[params]
+
+compress=true
+delimiter=0

@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://sgfyon81lqlh"]
 
-[ext_resource type="Script" path="res://scripts/ui/main_menu_controller.gd" id="1_4q8gq"]
+[ext_resource type="Script" uid="uid://cqo30f2h8664o" path="res://scripts/ui/main_menu_controller.gd" id="1_4q8gq"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -21,13 +21,11 @@ grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Center"]
 custom_minimum_size = Vector2(520, 360)
+layout_mode = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center/Panel"]
+layout_mode = 2
 theme_override_constants/separation = 12
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 500.0
-offset_bottom = 340.0
 
 [node name="Title" type="Label" parent="Center/Panel/VBox"]
 layout_mode = 2
@@ -54,5 +52,3 @@ text = "Quit"
 
 [connection signal="pressed" from="Center/Panel/VBox/StartButton" to="." method="_on_start_pressed"]
 [connection signal="pressed" from="Center/Panel/VBox/QuitButton" to="." method="_on_quit_pressed"]
-
-

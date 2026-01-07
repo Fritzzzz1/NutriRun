@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/entities/NutritionPickup.gd" id="1_pickup"]
 
 [sub_resource type="CircleShape2D" id="circle_shape"]
-radius = 16.0
+radius = 8.0
 
 [node name="NutritionPickup" type="Area2D"]
 collision_layer = 32

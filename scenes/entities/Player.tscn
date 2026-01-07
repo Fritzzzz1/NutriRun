@@ -1,6 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/gameplay/PlayerController.gd" id="1_player"]
+[ext_resource type="Texture2D" path="res://assets/sprites/player/character-spritesheet.png" id="2_spritesheet"]
 
 [sub_resource type="RectangleShape2D" id="rect_shape"]
 size = Vector2(32, 32)
@@ -8,20 +9,33 @@ size = Vector2(32, 32)
 [sub_resource type="RectangleShape2D" id="hurtbox_shape"]
 size = Vector2(28, 28)
 
+[sub_resource type="Gradient" id="exhaust_gradient"]
+colors = PackedColorArray(1, 0.7, 0.2, 1, 1, 0.3, 0, 0)
+
+[sub_resource type="GradientTexture1D" id="exhaust_color_ramp"]
+gradient = SubResource("exhaust_gradient")
+
+[sub_resource type="ParticleProcessMaterial" id="exhaust_material"]
+direction = Vector3(0, 1, 0)
+spread = 25.0
+initial_velocity_min = 80.0
+initial_velocity_max = 150.0
+gravity = Vector3(0, 0, 0)
+scale_min = 0.5
+scale_max = 1.5
+color = Color(1, 0.6, 0.2, 1)
+color_ramp = SubResource("exhaust_color_ramp")
+
 [node name="Player" type="CharacterBody2D" groups=["player"]]
 collision_layer = 2
-collision_mask = 1
+collision_mask = 5
 script = ExtResource("1_player")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("rect_shape")
 
-[node name="Sprite" type="ColorRect" parent="."]
-offset_left = -16.0
-offset_top = -16.0
-offset_right = 16.0
-offset_bottom = 16.0
-color = Color(0.4, 0.6, 0.9, 1)
+[node name="AnimatedSprite" type="AnimatedSprite2D" parent="."]
+scale = Vector2(1.0, 1.0)
 
 [node name="HealthBar" type="ProgressBar" parent="."]
 offset_left = -20.0
@@ -31,6 +45,27 @@ offset_bottom = -25.0
 max_value = 100.0
 value = 100.0
 show_percentage = false
+
+[node name="NitroBar" type="ProgressBar" parent="."]
+visible = false
+offset_left = -20.0
+offset_top = -38.0
+offset_right = 20.0
+offset_bottom = -33.0
+theme_override_styles/fill = null
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="ExhaustParticles" type="GPUParticles2D" parent="."]
+position = Vector2(0, 8)
+emitting = false
+amount = 20
+process_material = SubResource("exhaust_material")
+lifetime = 0.4
+speed_scale = 2.0
+explosiveness = 0.3
+visibility_rect = Rect2(-50, -50, 100, 100)
 
 [node name="Hurtbox" type="Area2D" parent="."]
 collision_layer = 8
