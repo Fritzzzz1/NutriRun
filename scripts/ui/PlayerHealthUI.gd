@@ -2,9 +2,12 @@ extends Control
 
 @export var bar_width: float = 250.0
 @export var bar_height: float = 24.0
+@export var nitro_bar_height: float = 16.0
 @export var background_color: Color = Color(0.15, 0.15, 0.2, 0.9)
 @export var health_color: Color = Color(0.2, 0.8, 0.3, 1.0)
 @export var low_health_color: Color = Color(0.9, 0.2, 0.2, 1.0)
+@export var nitro_color: Color = Color(1.0, 0.85, 0.0, 1.0)
+@export var nitro_low_color: Color = Color(0.6, 0.4, 0.0, 1.0)
 @export var border_color: Color = Color(0.4, 0.5, 0.6, 1.0)
 
 var player_ref: Node = null
@@ -12,9 +15,13 @@ var current_health: int = 100
 var max_health: int = 100
 var display_health: float = 100.0
 
+var current_nitro: float = 100.0
+var max_nitro: float = 100.0
+var display_nitro: float = 100.0
+
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(bar_width + 20, bar_height + 40)
+	custom_minimum_size = Vector2(bar_width + 20, bar_height + nitro_bar_height + 60)
 	call_deferred("_find_player")
 
 
@@ -22,14 +29,19 @@ func _process(delta: float) -> void:
 	if not player_ref:
 		_find_player()
 		return
-	
+
 	if "current_health" in player_ref:
 		current_health = player_ref.current_health
 	if "max_health" in player_ref:
 		max_health = player_ref.max_health
-	
+	if "nitro_energy" in player_ref:
+		current_nitro = player_ref.nitro_energy
+	if "nitro_max_energy" in player_ref:
+		max_nitro = player_ref.nitro_max_energy
+
 	display_health = lerp(display_health, float(current_health), delta * 10.0)
-	
+	display_nitro = lerp(display_nitro, current_nitro, delta * 10.0)
+
 	queue_redraw()
 
 
@@ -40,11 +52,19 @@ func _find_player() -> void:
 		if player_ref.has_signal("health_changed"):
 			if not player_ref.health_changed.is_connected(_on_health_changed):
 				player_ref.health_changed.connect(_on_health_changed)
+		if player_ref.has_signal("nitro_changed"):
+			if not player_ref.nitro_changed.is_connected(_on_nitro_changed):
+				player_ref.nitro_changed.connect(_on_nitro_changed)
 
 
 func _on_health_changed(new_health: int, new_max: int) -> void:
 	current_health = new_health
 	max_health = new_max
+
+
+func _on_nitro_changed(new_nitro: float, new_max: float) -> void:
+	current_nitro = new_nitro
+	max_nitro = new_max
 
 
 func _draw() -> void:
@@ -101,4 +121,33 @@ func _draw() -> void:
 	var br = start_pos + Vector2(bar_width, bar_height)
 	draw_line(br, br + Vector2(-corner_size, 0), accent_color, 2.0)
 	draw_line(br, br + Vector2(0, -corner_size), accent_color, 2.0)
+
+	# Draw nitro bar below HP bar
+	var nitro_start_pos = Vector2(padding, start_pos.y + bar_height + 18)
+
+	draw_string(font, Vector2(padding, nitro_start_pos.y - 4), "NITRO", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(1.0, 0.9, 0.4, 0.9))
+
+	var nitro_bg_rect = Rect2(nitro_start_pos, Vector2(bar_width, nitro_bar_height))
+	draw_rect(nitro_bg_rect, background_color)
+
+	var nitro_percent = display_nitro / max(max_nitro, 1) if max_nitro > 0 else 0.0
+	nitro_percent = clamp(nitro_percent, 0.0, 1.0)
+
+	var nitro_bar_color: Color
+	if nitro_percent < 0.2:
+		nitro_bar_color = nitro_low_color
+	elif nitro_percent < 0.4:
+		nitro_bar_color = nitro_color.lerp(nitro_low_color, (0.4 - nitro_percent) * 2.5)
+	else:
+		nitro_bar_color = nitro_color
+
+	if nitro_percent > 0:
+		var nitro_fill_width = bar_width * nitro_percent
+		var nitro_fill_rect = Rect2(nitro_start_pos, Vector2(nitro_fill_width, nitro_bar_height))
+		draw_rect(nitro_fill_rect, nitro_bar_color)
+
+		var nitro_shine_rect = Rect2(nitro_start_pos, Vector2(nitro_fill_width, nitro_bar_height * 0.4))
+		draw_rect(nitro_shine_rect, Color(1.0, 1.0, 1.0, 0.2))
+
+	draw_rect(nitro_bg_rect, Color(0.6, 0.5, 0.2, 0.8), false, 1.5)
 

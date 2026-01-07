@@ -1,3 +1,5 @@
+# META BOLISM
+
 # NutriRun: Complete Architecture & Technical Specification Prompt
 
 ## Executive Summary
@@ -12,9 +14,11 @@
 ## 1. CORE GAME VISION & DESIGN PHILOSOPHY
 
 ### 1.1 High-Concept
+
 NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutrition is the primary power system. Players control diverse characters (kids, monsters, snowmen, robots) who grow stronger by eating healthy foods and weaker by consuming junk food. Combat is squad-based using a "vegetable horde"—vegetables that scale with the player's nutrition buffs. Between runs, players return to a persistent cozy hub space (café, garden, or home base) where they decorate and unlock progression.
 
 ### 1.2 Design Pillars (Non-Negotiable)
+
 1. **Short, Replayable Runs:** 10-15 min per session; designed for "one more run" loop
 2. **Nutrition as Core Mechanic:** Fruits/vegetables = power-ups; junk food = risky debuffs
 3. **Distinctive Visual Identity:** Neon + pastels, anime-inspired silhouettes, reads in 10 seconds
@@ -23,6 +27,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 6. **Vegetable Horde Combat:** Squad-based battles where nutrition empowers AI-controlled vegetables
 
 ### 1.3 Target Audience
+
 - **Primary:** Ages 8-18 (family-friendly, educational health angle)
 - **Secondary:** Cozy game enthusiasts (Gen Z seeking stress-relief gaming)
 - **Tertiary:** Roguelite/speedrun community (TikTok, YouTube Shorts, Twitch audiences)
@@ -34,11 +39,13 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 2.1 The Core Loop: Each Run
 
 **Phase 1: Exploration & Gathering**
+
 - Player navigates procedurally-generated or hand-crafted tilemap rooms (2D top-down)
 - Encounters scattered **Nutrition Items** (collectibles) and **Enemy Groups**
 - Decision-making: Which items to pick up? Which enemies to fight? Risk vs. reward.
 
 **Phase 2: Nutrition System (Your Deck-Building Equivalent)**
+
 - **Inventory:** Hold up to 8 nutrition items at once
 - **Good Nutrition (Fruits/Vegetables):** Provide immediate buffs + synergy bonuses
   - Apple → +10% damage, restore 1 health
@@ -59,6 +66,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
   - Compost Bin → Turn eaten items into permanent stat boosts
 
 **Phase 3: Battle (Horde Mechanics)**
+
 - **Squad Composition:** Start with 3-5 vegetable units (tomatoes, carrots, peppers, lettuce)
 - **Vegetable Units:** Each has health, attack, speed, special ability
   - Tomato (basic): Medium stats, good for damage
@@ -74,6 +82,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
   - After victory: Nutrition items appear as room rewards
 
 **Phase 4: Room Progression**
+
 - Defeat enemies → Advance to next room
 - Gather nutrition along the way
 - Rooms scale in difficulty (more enemies, higher stats)
@@ -83,6 +92,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 2.2 Enemy Design & Nutrition Theming
 
 **Enemy Types (All Nutrition-Themed):**
+
 1. **Sugar Slug:** Fast, low health, spawns candy drops
 2. **Grease Goblin:** Medium, ranged oil attacks, drops junk food
 3. **Soda Specter:** Tank-like, heals other enemies, drops soda cans
@@ -91,6 +101,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 6. **Boss: The Sugar King:** Multi-phase boss with area attacks and minion summons
 
 **Enemy Mechanics:**
+
 - Enemies don't drop nutrition items; nutrition comes from ground spawns
 - Defeating enemies grants experience/unlock points toward hub progression
 - Some rooms have "nutrition caches" that appear without combat
@@ -98,6 +109,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 2.3 Run Progression & Difficulty Scaling
 
 **Structure:**
+
 - **Act 1:** Rooms 1-5 (tutorial difficulty, establish mechanics)
 - **Act 2:** Rooms 6-12 (medium difficulty, synergy depth)
 - **Act 3:** Rooms 13-15 (hard difficulty, final gauntlet)
@@ -105,6 +117,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 - **Final Boss:** The Sugar King (if player reaches end)
 
 **Difficulty Scaling:**
+
 - Enemy stats increase by 5-8% per room
 - Horde scaling: Nutrition synergies must keep pace to stay viable
 - RNG elements: Room layouts, enemy spawns, nutrition drop locations vary
@@ -112,6 +125,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 2.4 Synergy System (Deck-Building Equivalent)
 
 **Synergy Depth:** Stacking nutrition effects for multiplicative benefits
+
 - **Fruit Synergy:** 3+ fruits in inventory → Team gains +15% health max
 - **Vegetable Synergy:** 4+ vegetables in inventory → Horde attacks 20% faster
 - **Rainbow Synergy:** 1 of each color (apple=red, spinach=green, carrot=orange, etc.) → All stats +10%
@@ -127,18 +141,21 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 3.1 Hub Spaces (Pick One)
 
 **Option A: Cozy Café**
+
 - Counter area (NPCs serve nutrition advice)
 - Dining tables (decoratable)
 - Kitchen visible in background
 - Plant window sill
 
 **Option B: Garden Base**
+
 - Central garden plot (plant seeds that grow into decorations)
 - Tool shed (upgrade station)
 - Sitting area with benches
 - Fence perimeter to expand
 
 **Option C: Home Dorm Room**
+
 - Bed, desk, shelves (all decoratable)
 - Small kitchen nook
 - Window showing outside world
@@ -147,12 +164,14 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 3.2 Hub Mechanics
 
 **Decoration System:**
+
 - Unlock furniture/decor by completing runs
 - Place items freely in designated spaces
 - Cosmetic only (no gameplay impact) but provides visual reward loop
 - Save configurations across sessions
 
 **Upgrade Tree:**
+
 - **Horde Size:** Unlock +1 vegetable per tier (5→7 vegetables max)
 - **Nutrition Capacity:** Increase inventory from 8→12 slots
 - **Synergy Unlock:** New synergies unlock with progression
@@ -161,6 +180,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 - **Hub Expansions:** Unlock new rooms in hub or aesthetic changes
 
 **Currency:** "Harvest Points" earned per run based on:
+
 - Rooms cleared × 10 points
 - Enemies defeated × 5 points
 - Nutrition items collected × 2 points
@@ -169,6 +189,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 3.3 Recipe System
 
 **Unlockable Recipes:**
+
 - Combine nutrition items (not real-time, between-run mechanic)
 - Example: Apple + Honey → "Nutritious Apple Pie" (+30% health, +10% damage)
 - Example: Spinach + Blueberry → "Power Blend" (+20% speed, +15% horde damage)
@@ -183,16 +204,19 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 4.1 Starting Characters (V1)
 
 **Character 1: The Kid**
+
 - Base stats: Balanced (medium HP, medium damage, medium speed)
 - Special ability: "Growth Spurt" (eat 3 fruits → gain +25% size/damage for 1 room)
 - Lore: A determined child learning healthy eating
 
 **Character 2: The Monster**
+
 - Base stats: High HP, low speed, medium damage
 - Special ability: "Taste Test" (can hold 2 extra nutrition items; inventory 10 slots)
 - Lore: A friendly monster discovering vegetables aren't scary
 
 **Character 3: The Snowman**
+
 - Base stats: Low HP, high speed, medium damage
 - Special ability: "Chill Aura" (nearby vegetables take 15% less damage)
 - Lore: A cold creature that thrives on icy mechanics (frozen enemies)
@@ -202,6 +226,7 @@ NutriRun is a **short-run roguelite (10-15 minutes per playthrough)** where nutr
 ### 4.2 Character Customization
 
 **Appearance:**
+
 - Color swaps (red kid, blue monster, etc.)
 - Outfit variations (unlockable cosmetics)
 - No gameplay impact; purely visual
@@ -326,12 +351,14 @@ NutriRun/
 ### 5.2 Core Systems & Responsibilities
 
 #### **GameManager (Autoload Singleton)**
+
 - Track run state (current room, character, inventory, horde composition)
 - Manage transitions between hub, character select, and gameplay
 - Persist progress to disk (SaveSystem)
 - Emit events for UI updates (EventBus)
 
 #### **NutritionSystem.gd**
+
 - Store active nutrition buffs (list of Buff objects)
 - Calculate synergies in real-time (check inventory for synergy conditions)
 - Apply/remove buffs to player and horde
@@ -339,19 +366,22 @@ NutriRun/
 - Data-driven: Load synergies from JSON
 
 #### **HordeManager.gd**
+
 - Manage squad of VegetableUnit instances
-- Implement AI pathfinding (A* or simple patrol-chase behavior)
+- Implement AI pathfinding (A\* or simple patrol-chase behavior)
 - Attack assignment (target nearest enemy, prioritize targets)
 - Formation control (circle, line, loose)
 - Scale vegetable stats based on active buffs
 
 #### **PlayerController.gd**
+
 - Handle WASD movement, dash, inventory access
 - Track health, collect nutrition items on collision
 - Sync buff display to UI
 - Handle player death condition
 
 #### **RoomManager.gd**
+
 - Load room layouts (tilemap + enemy spawner data)
 - Procedural generation or pre-designed room pools
 - Manage difficulty scaling (per-room stat multipliers)
@@ -359,12 +389,14 @@ NutriRun/
 - Spawn minibosses/final boss at appropriate gates
 
 #### **EnemySpawner.gd**
+
 - Define enemy types and counts per room
 - Weighted random selection (difficulty-based weights)
 - Spawn at designated points in room
 - Remove enemies from scene on death
 
 #### **HubController.gd**
+
 - Load hub scene and player's saved decoration layout
 - Handle furniture placement/removal
 - Display upgrade tree UI
@@ -372,6 +404,7 @@ NutriRun/
 - Show character selection
 
 #### **SaveSystem.gd**
+
 - Serialize: HarvestPoints, UnlockedDecorations, UnlockedUpgrades, CharacterSkins, RecipeProgress
 - Save to `user://nutrirun_save.json`
 - Load on startup
@@ -420,8 +453,8 @@ var discovery_text: String
   "harvest_points": 250,
   "unlocked_decorations": ["bench_oak", "plant_fern", "table_round"],
   "unlocked_upgrades": [
-    {"name": "horde_size_1", "level": 1},
-    {"name": "nutrition_capacity_1", "level": 1}
+    { "name": "horde_size_1", "level": 1 },
+    { "name": "nutrition_capacity_1", "level": 1 }
   ],
   "unlocked_characters": ["kid", "monster"],
   "unlocked_recipes": ["apple_pie", "power_blend"],
@@ -429,8 +462,8 @@ var discovery_text: String
   "total_rooms_cleared": 87,
   "best_run_rooms": 15,
   "hub_furniture_layout": [
-    {"item": "bench_oak", "x": 100, "y": 150},
-    {"item": "plant_fern", "x": 200, "y": 100}
+    { "item": "bench_oak", "x": 100, "y": 150 },
+    { "item": "plant_fern", "x": 200, "y": 100 }
   ]
 }
 ```
@@ -444,17 +477,20 @@ var discovery_text: String
 **Aesthetic:** Neon + Pastels + Anime Silhouettes
 
 **Palette:**
+
 - **Primary Neon:** #4ADE80 (lime green), #38BDF8 (cyan), #C084FC (purple), #FB923C (orange)
 - **Pastels:** Soft cream, light peach, pale blue, soft purple
 - **Dark Base:** #0F172A (dark slate for backgrounds)
 
 **Sprite Guidelines:**
+
 - **Characters:** 64×64 px, anime-inspired with clear silhouettes
 - **Vegetables:** 32×32 px, cute anthropomorphic designs (smiling tomatoes, etc.)
 - **Enemies:** 48×48 px, junk-food themed; visually distinct from vegetables
 - **UI Icons:** 16×16 px, pixel-perfect, high contrast
 
 **Animation:**
+
 - Idle, walk, attack, hurt, death for all characters & vegetables
 - Buff particles (glowing aura) when synergies activate
 - Damage numbers float up on hit
@@ -463,6 +499,7 @@ var discovery_text: String
 ### 6.2 Audio Design
 
 **Music:**
+
 - **Main Menu:** Upbeat, cozy, inviting (loop ~2 min)
 - **Hub:** Relaxing, almost ASMR-like (loop ~3 min, layered)
 - **Gameplay (Rooms 1-5):** Light, energetic, exploration vibe
@@ -473,6 +510,7 @@ var discovery_text: String
 - **Game Over:** Sad but not harsh
 
 **Sound Effects:**
+
 - **Eating items:** Satisfying crunch/gulp sounds (different per item type)
 - **Vegetable attack:** Soft swoosh, impact hit sound
 - **Enemy hit:** Bonk, splat, or damage sound (varied per enemy)
@@ -486,6 +524,7 @@ var discovery_text: String
 - **Defeat:** Slow, gentle fade
 
 **Voice Lines (Optional, V1):**
+
 - Character selection: Light intro voice ("Let's do this!" etc.)
 - Synergy discovery: NPC says synergy name
 - No constant chatter; keep player focused
@@ -543,6 +582,7 @@ MainMenu (Play, Settings, Credits, Quit)
 ## 8. DEVELOPMENT PHASES & MILESTONES
 
 ### Phase 1: Foundation (Weeks 1-2)
+
 - [ ] Godot project setup, folder structure, autoloads
 - [ ] Player character controller (basic movement, collision)
 - [ ] One tilemap room with static enemies
@@ -550,30 +590,35 @@ MainMenu (Play, Settings, Credits, Quit)
 - [ ] Basic player health & damage system
 
 ### Phase 2: Horde System (Weeks 3-4)
+
 - [ ] Vegetable unit spawning & squad management
 - [ ] Horde AI (simple chase-attack behavior)
 - [ ] Nutrition buff system (apply buffs to vegetables)
 - [ ] Basic combat loop (player + horde vs. enemies)
 
 ### Phase 3: Synergies & Balance (Weeks 5-6)
+
 - [ ] Synergy detection & calculation
 - [ ] Synergy UI display
 - [ ] First pass at data-driven buff values (JSON)
 - [ ] Playtesting & balance tuning
 
 ### Phase 4: Room Progression (Weeks 7-8)
+
 - [ ] RoomManager with room progression (Act 1, 2, 3)
 - [ ] Procedural or hand-crafted room pools
 - [ ] Miniboss encounters
 - [ ] Difficulty scaling per room
 
 ### Phase 5: Hub & Persistence (Weeks 9-10)
+
 - [ ] Hub scene (Café, Garden, or Dorm)
 - [ ] Decoration placement system
 - [ ] Upgrade tree UI & logic
 - [ ] Save/load system (JSON persistence)
 
 ### Phase 6: Polish & Content (Weeks 11-12)
+
 - [ ] All 5 enemy types implemented & balanced
 - [ ] All 15+ nutrition items with unique sprites
 - [ ] Particle effects, screen shake, juice
@@ -581,6 +626,7 @@ MainMenu (Play, Settings, Credits, Quit)
 - [ ] Bug fixes & optimization
 
 ### Phase 7: Testing & Release Prep (Weeks 13-14)
+
 - [ ] Full playthrough testing
 - [ ] Balance tuning (difficulty curve)
 - [ ] Performance optimization
@@ -608,16 +654,19 @@ MainMenu (Play, Settings, Credits, Quit)
 ## 10. POST-LAUNCH ROADMAP (Optional)
 
 **V1.1:**
+
 - Unlock new characters (robot, alien, shadow creature)
 - Add recipe system (combine items for custom buffs)
 - Cozy decorative hub expansion
 
 **V1.2:**
+
 - Leaderboard system (runs cleared, fastest time, highest points)
 - Daily/weekly challenges
 - New enemy types & boss variations
 
 **V2.0 (Future):**
+
 - Multiplayer co-op (2 players, shared horde)
 - Story mode with NPCs & narrative
 - Advanced synergy system (more complex interactions)
@@ -628,6 +677,7 @@ MainMenu (Play, Settings, Credits, Quit)
 ## 11. REFERENCES & INSPIRATION
 
 **Game Design References:**
+
 - Vampire Survivors (wave-based action, buff stacking)
 - Hades (roguelite + cozy hub progression)
 - Into the Breach (squad-based tactical combat)
@@ -635,6 +685,7 @@ MainMenu (Play, Settings, Credits, Quit)
 - Overcooked (cooperative squad mechanics)
 
 **Market Context:**
+
 - Roguelite genre exploded in 2024-2025 (50+ major releases)
 - Cozy games rising as stress-relief (Gen Z mental health focus)
 - Educational + fun angle (health/nutrition themes = parental approval)

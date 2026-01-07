@@ -58,7 +58,7 @@ text = "Monster"
 [node name="SnowmanButton" type="Button" parent="Center/Panel/VBox/ButtonsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Snowman"
+text = "Lizardman"
 
 [node name="Spacer" type="Control" parent="Center/Panel/VBox"]
 layout_mode = 2

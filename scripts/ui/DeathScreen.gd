@@ -26,8 +26,6 @@ func _ready() -> void:
 		var error = continue_button.pressed.connect(_on_continue_pressed)
 		if error != OK:
 			push_error("Failed to connect continue_button.pressed signal: " + str(error))
-		else:
-			print("DeathScreen: Successfully connected button signal")
 	else:
 		push_error("DeathScreen: continue_button is null!")
 
@@ -143,11 +141,7 @@ func _format_time(seconds: float) -> String:
 
 func _on_continue_pressed() -> void:
 	"""Handle continue button press."""
-	print("DeathScreen: Continue button pressed!")
-	
 	continue_button.disabled = true
-	
-	print("DeathScreen: Emitting continue_pressed signal")
 	continue_pressed.emit()
 	
 	var tween = create_tween()

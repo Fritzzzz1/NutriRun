@@ -5,27 +5,30 @@ const FLOAT_DURATION: float = 0.8
 const SPREAD_RANGE: float = 20.0
 
 
-func spawn_at_world_position(damage: int, world_pos: Vector2, _camera: Camera2D = null, is_critical: bool = false, is_heal: bool = false) -> void:
+func spawn_at_world_position(damage: int, world_pos: Vector2, _camera: Camera2D = null, is_critical: bool = false, is_heal: bool = false, is_nitro: bool = false) -> void:
 	"""Spawn a floating damage number at the given world position."""
 	var gameplay_layer = _get_gameplay_layer()
 	if not gameplay_layer:
 		return
-	
+
 	var container = Node2D.new()
 	container.global_position = world_pos + Vector2(randf_range(-SPREAD_RANGE, SPREAD_RANGE), 0)
 	container.z_index = 100
-	
+
 	var label = Label.new()
-	
-	if is_heal:
+
+	if is_heal or is_nitro:
 		label.text = "+%d" % damage
 	else:
 		label.text = "%d" % damage
-	
+
 	var color: Color
 	var font_size: int
-	
-	if is_heal:
+
+	if is_nitro:
+		color = Color(1.0, 0.85, 0.0)
+		font_size = 20
+	elif is_heal:
 		color = Color(0.2, 1.0, 0.3)
 		font_size = 22
 	elif is_critical:
