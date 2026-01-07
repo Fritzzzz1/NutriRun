@@ -13,7 +13,13 @@ var last_movement_direction: Vector2 = Vector2.ZERO
 
 # Push physics
 var push_velocity: Vector2 = Vector2.ZERO
-var push_resistance: float = 0.3
+var push_resistance: float = 0.4
+
+# Separation physics (prevents sticking to player)
+var separation_velocity: Vector2 = Vector2.ZERO
+var min_separation_distance: float = 20.0
+var separation_force: float = 250.0
+var separation_distance_multiplier: float = 2.5
 
 var can_shoot: bool = true
 var projectile_speed: float = 250.0
@@ -22,9 +28,19 @@ var shoot_cooldown: float = 2.0
 var shoot_timer: float = 0.0
 
 var game_balance: Dictionary = {}
+var entity_scales: Dictionary = {}
 
 var player_ref: Node2D = null
 var is_active: bool = true
+
+# Scale-based configuration (loaded from game_balance.json)
+var enemy_collision_radius: float = 8.0
+var enemy_sprite_scale: float = 0.04
+var enemy_hitbox_radius: float = 12.0
+var player_collision_radius: float = 16.0
+var projectile_collision_radius: float = 3.0
+var projectile_visual_size: float = 6.0
+var projectile_glow_size: float = 8.0
 
 @onready var health_bar: ProgressBar = $HealthBar
 var visual_container: Node2D = null
@@ -61,8 +77,11 @@ func _physics_process(delta: float) -> void:
 	attack_timer -= delta
 	shoot_timer -= delta
 
-	# Decay push velocity
-	push_velocity = push_velocity.lerp(Vector2.ZERO, 20.0 * delta)
+	# Decay push velocity (from player pushing enemy)
+	push_velocity = push_velocity.lerp(Vector2.ZERO, 15.0 * delta)
+
+	# Decay separation velocity (from collision response)
+	separation_velocity = separation_velocity.lerp(Vector2.ZERO, 10.0 * delta)
 
 	if player_ref and is_instance_valid(player_ref):
 		var direction = (player_ref.global_position - global_position).normalized()
@@ -70,9 +89,15 @@ func _physics_process(delta: float) -> void:
 
 		last_movement_direction = direction
 
-		# Combine movement with push from player
-		velocity = direction * speed + push_velocity
+		# Always chase the player - let collision physics handle separation
+		var chase_velocity = direction * speed
+
+		# Combine velocities: chase + push from player + separation from collision
+		velocity = chase_velocity + push_velocity + separation_velocity
 		move_and_slide()
+
+		# Apply separation ONLY when actually colliding (post-collision response)
+		_handle_player_collision_separation()
 
 		if can_shoot and shoot_timer <= 0 and distance < shoot_range and distance > 50:
 			_shoot_projectile(direction)
@@ -81,6 +106,26 @@ func _physics_process(delta: float) -> void:
 		_check_contact_damage()
 	else:
 		_find_player()
+
+
+func _handle_player_collision_separation() -> void:
+	"""Check for direct collision with player and apply strong separation."""
+	var collision_count = get_slide_collision_count()
+	for i in range(collision_count):
+		var collision = get_slide_collision(i)
+		var collider = collision.get_collider()
+
+		if collider and collider.is_in_group("player"):
+			# We're physically colliding with player - apply immediate separation
+			var separation_dir = (global_position - collider.global_position).normalized()
+
+			# If positions are nearly identical, pick a random direction
+			if separation_dir.length() < 0.1:
+				separation_dir = Vector2(randf_range(-1, 1), randf_range(-1, 1)).normalized()
+
+			# Apply strong separation impulse
+			separation_velocity = separation_dir * separation_force * 1.5
+			break
 
 
 func _shoot_projectile(direction: Vector2) -> void:
@@ -108,19 +153,21 @@ func _create_projectile() -> Node2D:
 	
 	var collision_shape = CollisionShape2D.new()
 	var shape = CircleShape2D.new()
-	shape.radius = 6.0
+	shape.radius = projectile_collision_radius
 	collision_shape.shape = shape
 	proj.add_child(collision_shape)
-	
+
+	var vis_size = projectile_visual_size
 	var visual = ColorRect.new()
-	visual.size = Vector2(12, 12)
-	visual.position = Vector2(-6, -6)
+	visual.size = Vector2(vis_size, vis_size)
+	visual.position = Vector2(-vis_size / 2, -vis_size / 2)
 	visual.color = Color(1.0, 0.3, 0.1)
 	proj.add_child(visual)
-	
+
+	var glow_size = projectile_glow_size
 	var glow = ColorRect.new()
-	glow.size = Vector2(16, 16)
-	glow.position = Vector2(-8, -8)
+	glow.size = Vector2(glow_size, glow_size)
+	glow.position = Vector2(-glow_size / 2, -glow_size / 2)
 	glow.color = Color(1.0, 0.5, 0.2, 0.5)
 	glow.z_index = -1
 	proj.add_child(glow)
@@ -187,6 +234,11 @@ func _load_game_balance() -> void:
 			if parse_result:
 				game_balance = parse_result
 
+				# Load entity scales first
+				if game_balance.has("entity_scales"):
+					entity_scales = game_balance.entity_scales
+					_apply_entity_scales()
+
 				if game_balance.has("enemy"):
 					var enemy_config = game_balance.enemy
 					max_health = enemy_config.get("base_health", 50)
@@ -196,7 +248,31 @@ func _load_game_balance() -> void:
 					projectile_speed = enemy_config.get("projectile_speed", 250.0)
 					shoot_range = enemy_config.get("shoot_range", 300.0)
 					shoot_cooldown = enemy_config.get("shoot_cooldown", 2.0)
-					push_resistance = enemy_config.get("push_resistance", 0.3)
+					push_resistance = enemy_config.get("push_resistance", 0.4)
+					separation_distance_multiplier = enemy_config.get("min_separation_distance_multiplier", 2.5)
+					separation_force = enemy_config.get("separation_force", 250.0)
+
+				# Calculate min_separation_distance based on entity sizes
+				min_separation_distance = (player_collision_radius + enemy_collision_radius) * separation_distance_multiplier
+
+
+func _apply_entity_scales() -> void:
+	"""Apply entity scale configuration."""
+	if entity_scales.has("enemy"):
+		var enemy_scale = entity_scales.enemy
+		enemy_collision_radius = enemy_scale.get("collision_radius", 8.0)
+		enemy_sprite_scale = enemy_scale.get("sprite_scale", 0.04)
+		enemy_hitbox_radius = enemy_scale.get("hitbox_radius", 12.0)
+
+	if entity_scales.has("player"):
+		var player_scale = entity_scales.player
+		player_collision_radius = player_scale.get("collision_radius", 16.0)
+
+	if entity_scales.has("projectile"):
+		var proj_scale = entity_scales.projectile
+		projectile_collision_radius = proj_scale.get("collision_radius", 3.0)
+		projectile_visual_size = proj_scale.get("visual_size", 6.0)
+		projectile_glow_size = proj_scale.get("glow_size", 8.0)
 
 
 func _find_player() -> void:
@@ -207,36 +283,27 @@ func _find_player() -> void:
 
 
 func _setup_visual() -> void:
-	"""Set up enemy visual representation."""
-	var enemy_size = 32.0
-	
-	# Outer glow
-	var glow = ColorRect.new()
-	glow.size = Vector2(enemy_size + 8, enemy_size + 8)
-	glow.color = Color(0.8, 0.2, 0.2, 0.5)
-	glow.position = Vector2(-(enemy_size + 8) / 2, -(enemy_size + 8) / 2)
-	visual_container.add_child(glow)
-	
-	# Main body (diamond shape using rotated square)
-	var body = ColorRect.new()
-	body.size = Vector2(enemy_size, enemy_size)
-	body.color = Color(0.9, 0.3, 0.3)
-	body.position = Vector2(-enemy_size / 2, -enemy_size / 2)
-	body.rotation_degrees = 45
-	visual_container.add_child(body)
-	
-	# Eyes (simple dots)
-	var eye1 = ColorRect.new()
-	eye1.size = Vector2(6, 6)
-	eye1.color = Color.WHITE
-	eye1.position = Vector2(-enemy_size / 2 - 4, -enemy_size / 2 - 4)
-	visual_container.add_child(eye1)
-	
-	var eye2 = ColorRect.new()
-	eye2.size = Vector2(6, 6)
-	eye2.color = Color.WHITE
-	eye2.position = Vector2(enemy_size / 2 - 2, -enemy_size / 2 - 4)
-	visual_container.add_child(eye2)
+	"""Set up enemy visual representation using sprite."""
+	var sprite = Sprite2D.new()
+	sprite.name = "EnemySprite"
+
+	# Load the bacteria sprite texture
+	var texture = load("res://assets/sprites/enemy/enemy_bacteria_2.png")
+	if texture:
+		sprite.texture = texture
+		# Use scale from config
+		sprite.scale = Vector2(enemy_sprite_scale, enemy_sprite_scale)
+	else:
+		# Fallback to colored rectangle if texture not found
+		var fallback_size = enemy_collision_radius * 2
+		var fallback = ColorRect.new()
+		fallback.size = Vector2(fallback_size, fallback_size)
+		fallback.color = Color(0.9, 0.3, 0.3)
+		fallback.position = Vector2(-fallback_size / 2, -fallback_size / 2)
+		visual_container.add_child(fallback)
+		return
+
+	visual_container.add_child(sprite)
 
 
 func _setup_hitbox() -> void:
@@ -245,22 +312,20 @@ func _setup_hitbox() -> void:
 	if not hitbox:
 		hitbox = Area2D.new()
 		hitbox.name = "Hitbox"
-		
+
 		hitbox.collision_layer = 16
 		hitbox.collision_mask = 8
 		hitbox.monitoring = true
 		hitbox.monitorable = true
-		
+
 		var hitbox_collision = CollisionShape2D.new()
 		var hitbox_shape = CircleShape2D.new()
-		hitbox_shape.radius = 24.0
+		hitbox_shape.radius = enemy_hitbox_radius
 		hitbox_collision.shape = hitbox_shape
 		hitbox.add_child(hitbox_collision)
-		
+
 		add_child(hitbox)
 	
-	if not hitbox.area_entered.is_connected(_on_hitbox_area_entered):
-		hitbox.area_entered.connect(_on_hitbox_area_entered)
 
 
 func _check_contact_damage() -> void:
@@ -274,16 +339,6 @@ func _check_contact_damage() -> void:
 		if player and player.is_in_group("player"):
 			_deal_contact_damage(player)
 			break
-
-
-func _on_hitbox_area_entered(area: Area2D) -> void:
-	"""Handle when hitbox overlaps with player hurtbox (contact damage)."""
-	if attack_timer > 0 or not is_active:
-		return
-
-	var player = area.get_parent()
-	if player and player.is_in_group("player"):
-		_deal_contact_damage(player)
 
 
 func _deal_contact_damage(player: Node2D) -> void:
@@ -314,7 +369,8 @@ func take_damage(amount: int) -> void:
 	
 	if DamageNumbers:
 		var is_crit = amount >= 20
-		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, -20), null, is_crit)
+		var damage_offset = -(enemy_hitbox_radius + 4)
+		DamageNumbers.spawn_at_world_position(amount, global_position + Vector2(0, damage_offset), null, is_crit)
 	
 	_flash_damage()
 	

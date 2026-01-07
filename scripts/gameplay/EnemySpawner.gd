@@ -10,10 +10,35 @@ var spawn_area: Rect2 = Rect2(-3500, -2000, 7000, 4000)
 
 var gameplay_layer: Node2D = null
 
+# Scale config (loaded from game_balance.json)
+var enemy_collision_radius: float = 8.0
+var enemy_health_bar_width: float = 24.0
+var enemy_health_bar_height: float = 4.0
+
 
 func _ready() -> void:
+	_load_entity_scales()
 	_find_gameplay_layer()
 	spawn_timer = spawn_interval * 0.7
+
+
+func _load_entity_scales() -> void:
+	"""Load entity scale configuration."""
+	var balance_path = "res://assets/data/game_balance.json"
+	if ResourceLoader.exists(balance_path):
+		var file = FileAccess.open(balance_path, FileAccess.READ)
+		if file:
+			var json = JSON.new()
+			var parse_result = json.parse_string(file.get_as_text())
+			file.close()
+
+			if parse_result and parse_result.has("entity_scales"):
+				var scales = parse_result.entity_scales
+				if scales.has("enemy"):
+					var enemy_scale = scales.enemy
+					enemy_collision_radius = enemy_scale.get("collision_radius", 8.0)
+					enemy_health_bar_width = enemy_scale.get("health_bar_width", 24.0)
+					enemy_health_bar_height = enemy_scale.get("health_bar_height", 4.0)
 
 
 func _find_gameplay_layer() -> void:
@@ -59,8 +84,9 @@ func _create_enemy() -> Node2D:
 	enemy.name = "Enemy"
 	
 	# Set collision layers BEFORE adding to tree
+	# Layer 4 = enemies, Mask 1 = walls, Mask 2 = player
 	enemy.collision_layer = 4
-	enemy.collision_mask = 1
+	enemy.collision_mask = 3  # 1 (walls) + 2 (player)
 	
 	var script = load("res://scripts/enemies/EnemyBase.gd")
 	enemy.set_script(script)
@@ -68,18 +94,20 @@ func _create_enemy() -> Node2D:
 	var collision = CollisionShape2D.new()
 	collision.name = "CollisionShape2D"
 	var shape = CircleShape2D.new()
-	shape.radius = 16.0
+	shape.radius = enemy_collision_radius
 	collision.shape = shape
 	enemy.add_child(collision)
-	
+
 	var visual_container = Node2D.new()
 	visual_container.name = "VisualContainer"
 	enemy.add_child(visual_container)
-	
+
 	var health_bar = ProgressBar.new()
 	health_bar.name = "HealthBar"
-	health_bar.size = Vector2(40, 6)
-	health_bar.position = Vector2(-20, -30)
+	health_bar.size = Vector2(enemy_health_bar_width, enemy_health_bar_height)
+	# Position health bar above the enemy based on collision radius
+	var bar_y_offset = -(enemy_collision_radius * 2 + 4)
+	health_bar.position = Vector2(-enemy_health_bar_width / 2, bar_y_offset)
 	health_bar.show_percentage = false
 	enemy.add_child(health_bar)
 	

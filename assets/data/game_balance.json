@@ -1,16 +1,51 @@
 {
+  "entity_scales": {
+    "player": {
+      "collision_radius": 16,
+      "sprite_scale": 1.0,
+      "half_size": 16
+    },
+    "enemy": {
+      "collision_radius": 8,
+      "sprite_scale": 0.04,
+      "hitbox_radius": 12,
+      "health_bar_width": 24,
+      "health_bar_height": 4
+    },
+    "pickup": {
+      "collision_radius": 8,
+      "base_size": 12,
+      "rare_size": 16,
+      "uncommon_size": 14,
+      "glow_padding": 6
+    },
+    "projectile": {
+      "collision_radius": 3,
+      "visual_size": 6,
+      "glow_size": 8
+    }
+  },
   "player": {
     "base_health": 10000,
     "base_speed": 200,
-    "knockback_force": 1,
-    "knockback_decay": 10,
+    "knockback_force": 250,
+    "knockback_decay": 8,
     "invincibility_duration": 0.8,
-    "bounce_force": 100,
-    "push_force": 80,
-    "push_dot_threshold": 0.5,
-    "push_decay": 15,
-    "max_push_force": 400,
-    "player_push_force": 50
+    "bounce_force": 120,
+    "push_force": 200,
+    "push_decay": 10,
+    "max_push_force": 500,
+    "player_push_force": 120
+  },
+  "nitro": {
+    "max_energy": 100.0,
+    "drain_per_press": 8.0,
+    "drain_while_held": 15.0,
+    "boost_acceleration": 600.0,
+    "max_boost_speed": 500.0,
+    "boost_decay": 400.0,
+    "min_energy_to_activate": 5.0,
+    "pickup_refill_amount": 25.0
   },
   "enemy": {
     "base_health": 50,
@@ -20,13 +55,12 @@
     "projectile_speed": 250,
     "shoot_range": 300,
     "shoot_cooldown": 2.0,
-    "push_resistance": 0.3
+    "push_resistance": 0.4,
+    "min_separation_distance_multiplier": 1.0,
+    "separation_force": 200.0
   },
   "combat": {
-    "damage_number_offset_y": -20,
+    "damage_number_offset_y": -15,
     "critical_damage_threshold": 20
-  },
-  "camera": {
-    "player_half_size": 16
   }
 }

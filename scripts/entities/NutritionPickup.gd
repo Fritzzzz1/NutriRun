@@ -15,19 +15,46 @@ var main_shape: ColorRect
 var glow_shape: ColorRect
 var pulse_tween: Tween
 
+# Scale config (loaded from game_balance.json)
+var pickup_base_size: float = 12.0
+var pickup_rare_size: float = 16.0
+var pickup_uncommon_size: float = 14.0
+var pickup_glow_padding: float = 6.0
+
 
 func _ready() -> void:
+	_load_entity_scales()
 	body_entered.connect(_on_body_entered)
-	
+
 	visual_container = get_node_or_null("VisualContainer")
 	if not visual_container:
 		visual_container = Node2D.new()
 		visual_container.name = "VisualContainer"
 		add_child(visual_container)
-	
+
 	if not item_data.is_empty():
 		_setup_visual()
 		_play_spawn_animation()
+
+
+func _load_entity_scales() -> void:
+	"""Load entity scale configuration."""
+	var balance_path = "res://assets/data/game_balance.json"
+	if ResourceLoader.exists(balance_path):
+		var file = FileAccess.open(balance_path, FileAccess.READ)
+		if file:
+			var json = JSON.new()
+			var parse_result = json.parse_string(file.get_as_text())
+			file.close()
+
+			if parse_result and parse_result.has("entity_scales"):
+				var scales = parse_result.entity_scales
+				if scales.has("pickup"):
+					var pickup_scale = scales.pickup
+					pickup_base_size = pickup_scale.get("base_size", 12.0)
+					pickup_rare_size = pickup_scale.get("rare_size", 16.0)
+					pickup_uncommon_size = pickup_scale.get("uncommon_size", 14.0)
+					pickup_glow_padding = pickup_scale.get("glow_padding", 6.0)
 
 
 func initialize(data: Dictionary) -> void:
@@ -48,14 +75,14 @@ func _setup_visual() -> void:
 	"""Set up visual placeholder based on item type."""
 	if item_data.is_empty():
 		return
-	
+
 	for child in visual_container.get_children():
 		child.queue_free()
-	
+
 	var base_color: Color
 	var shape_type: String = "circle"
-	var size: float = 24.0
-	
+	var size: float = pickup_base_size
+
 	if item_data.has("type"):
 		match item_data.type:
 			"fruit":
@@ -73,17 +100,17 @@ func _setup_visual() -> void:
 	else:
 		base_color = Color.GREEN
 		shape_type = "circle"
-	
+
 	if item_data.has("rarity"):
 		match item_data.rarity:
 			"rare":
 				base_color = base_color.lerp(Color.WHITE, 0.3)
-				size = 32.0
+				size = pickup_rare_size
 			"uncommon":
 				base_color = base_color.lerp(Color.WHITE, 0.15)
-				size = 28.0
-	
-	var glow_size = size + 12.0
+				size = pickup_uncommon_size
+
+	var glow_size = size + pickup_glow_padding
 	glow_shape = ColorRect.new()
 	glow_shape.size = Vector2(glow_size, glow_size)
 	glow_shape.color = Color(base_color.r, base_color.g, base_color.b, 0.4)
@@ -102,11 +129,12 @@ func _setup_visual() -> void:
 		label.text = item_id[0].to_upper()
 	else:
 		label.text = "?"
-	label.add_theme_font_size_override("font_size", 16)
+	var label_size = size + 8
+	label.add_theme_font_size_override("font_size", int(size * 0.7))
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.position = Vector2(-size / 2, -size / 2)
-	label.size = Vector2(size, size)
+	label.position = Vector2(-label_size / 2, -label_size / 2)
+	label.size = Vector2(label_size, label_size)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	visual_container.add_child(label)
 	
