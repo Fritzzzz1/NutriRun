@@ -1,7 +1,6 @@
 extends Node
 
 const DEATH_SCREEN_SCENE = preload("res://scenes/ui/death_screen.tscn")
-const DO_DISPLAY_DEBUG_PANEL: bool = true
 
 @onready var gameplay_layer: Node2D = $GameplayLayer
 @onready var room: Node2D = $GameplayLayer/Room
@@ -11,10 +10,6 @@ const DO_DISPLAY_DEBUG_PANEL: bool = true
 @onready var item_spawner: Node2D = $GameplayLayer/ItemSpawner
 @onready var enemy_spawner: Node2D = $GameplayLayer/EnemySpawner
 @onready var item_display: Control = $UILayer/ItemPickupDisplay
-@onready var debug_panel: PanelContainer = $UILayer/UI/TopLeft/VBox/DebugPanel
-@onready var invincible_checkbox: CheckBox = $UILayer/UI/TopLeft/VBox/DebugPanel/VBox/InvincibleCheckBox
-@onready var game_speed_slider: HSlider = $UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer/GameSpeedSlider
-@onready var game_speed_label: Label = $UILayer/UI/TopLeft/VBox/DebugPanel/VBox/GameSpeedContainer/GameSpeedValueLabel
 
 var run_stats: Dictionary = {
 	"rooms_cleared": 0,
@@ -56,14 +51,11 @@ func _ready() -> void:
 	
 	if player and player.has_signal("player_died"):
 		player.player_died.connect(_on_player_died)
-	if player and player.has_signal("health_changed"):
-		player.health_changed.connect(_on_player_health_changed)
 	
 	_setup_spawners()
-	
+
 	_update_room_label()
-	_setup_debug_panel()
-	
+
 	EventBus.push_notification("Gameplay started - Room %d" % GameState.current_room)
 	EventBus.run_started.emit()
 
@@ -117,20 +109,16 @@ func _show_death_screen() -> void:
 	add_child(death_screen)
 	
 	if death_screen.continue_pressed.connect(_on_death_screen_continue) != OK:
-		print("ERROR: Failed to connect continue_pressed signal!")
-	else:
-		print("GameplayRoot: Successfully connected continue_pressed signal")
+		push_error("Failed to connect continue_pressed signal")
 	
 	death_screen.show_death_screen(run_stats)
 
 
 func _on_death_screen_continue() -> void:
 	"""Handle continue from death screen."""
-	print("GameplayRoot: Death screen continue received!")
 	EventBus.run_ended.emit()
 	GameState.reset_run_state()
 	InventoryManager.reset_inventory()
-	print("GameplayRoot: Transitioning to main menu...")
 	call_deferred("_transition_to_main_menu")
 
 
@@ -139,21 +127,15 @@ func _transition_to_main_menu() -> void:
 	SceneManager.go_to_main_menu()
 
 
-func _on_player_health_changed(current: int, max_health: int) -> void:
-	pass
 
 
 func _setup_spawners() -> void:
 	"""Setup item and enemy spawners."""
-	if item_spawner:
-		if item_spawner.has_method("_ready"):
-			if item_spawner.has_signal("item_spawned"):
-				item_spawner.item_spawned.connect(_on_item_spawned)
+	if item_spawner and item_spawner.has_signal("item_spawned"):
+		item_spawner.item_spawned.connect(_on_item_spawned)
 	
-	if enemy_spawner:
-		if enemy_spawner.has_method("_ready"):
-			if enemy_spawner.has_signal("enemy_spawned"):
-				enemy_spawner.enemy_spawned.connect(_on_enemy_spawned)
+	if enemy_spawner and enemy_spawner.has_signal("enemy_spawned"):
+		enemy_spawner.enemy_spawned.connect(_on_enemy_spawned)
 
 
 func _on_item_spawned(item_node: Node2D) -> void:
@@ -177,10 +159,15 @@ func _on_pickup_collected(item_data: Dictionary) -> void:
 	"""Handle when player collects a nutrition pickup."""
 	if InventoryManager.add_item(item_data):
 		run_stats.items_collected += 1
-		
+
 		if item_display:
 			item_display.show_item(item_data)
-		
+
+		# Refill nitro when collecting items
+		if player and player.has_method("refill_nitro"):
+			var refill_amount = player.nitro_pickup_refill if "nitro_pickup_refill" in player else 25.0
+			player.refill_nitro(refill_amount)
+
 		EventBus.push_notification("Collected: %s" % item_data.get("id", "Unknown"))
 	else:
 		EventBus.push_notification("Inventory full!")
@@ -192,31 +179,11 @@ func _on_return_to_hub_pressed() -> void:
 	SceneManager.go_to_hub()
 
 
-func _setup_debug_panel() -> void:
-	"""Setup debug panel visibility."""
-	if debug_panel:
-		debug_panel.visible = DO_DISPLAY_DEBUG_PANEL
-	
-	# Initialize game speed to default (1.0)
-	if game_speed_slider:
-		game_speed_slider.value = 1.0
-		Engine.time_scale = 1.0
-		_update_game_speed_label(1.0)
-
-
-func _on_debug_invincible_toggled(button_pressed: bool) -> void:
-	"""Handle debug invincibility checkbox toggle."""
+func _on_debug_invincible_toggled(enabled: bool) -> void:
 	if player and player.has_method("set_debug_invincible"):
-		player.set_debug_invincible(button_pressed)
+		player.set_debug_invincible(enabled)
 
 
-func _on_debug_game_speed_changed(value: float) -> void:
-	"""Handle debug game speed slider change."""
-	Engine.time_scale = value
-	_update_game_speed_label(value)
-
-
-func _update_game_speed_label(value: float) -> void:
-	"""Update the game speed label to show current value."""
-	if game_speed_label:
-		game_speed_label.text = "%.2fx" % value
+func _on_debug_camera_zoom_changed(zoom_level: float) -> void:
+	if camera and camera.has_method("set_zoom_level"):
+		camera.set_zoom_level(zoom_level)

@@ -1,0 +1,67 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/DebugPanel.gd" id="1_debug"]
+
+[node name="DebugPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 170)
+script = ExtResource("1_debug")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Debug"
+theme_override_font_sizes/font_size = 14
+
+[node name="InvincibleCheckBox" type="CheckBox" parent="VBox"]
+layout_mode = 2
+focus_mode = 0
+text = "Invincible"
+
+[node name="GameSpeedContainer" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GameSpeedLabel" type="Label" parent="VBox/GameSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+custom_minimum_size = Vector2(50, 0)
+text = "Speed:"
+
+[node name="GameSpeedSlider" type="HSlider" parent="VBox/GameSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+min_value = 0.25
+max_value = 10.0
+step = 0.25
+value = 1.0
+
+[node name="GameSpeedValueLabel" type="Label" parent="VBox/GameSpeedContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+custom_minimum_size = Vector2(40, 0)
+text = "1.0x"
+
+[node name="CameraZoomContainer" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CameraZoomLabel" type="Label" parent="VBox/CameraZoomContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+custom_minimum_size = Vector2(50, 0)
+text = "Zoom:"
+
+[node name="CameraZoomOption" type="OptionButton" parent="VBox/CameraZoomContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+item_count = 5
+popup/item_0/text = "0.5x"
+popup/item_1/text = "1x"
+popup/item_2/text = "1.5x"
+popup/item_3/text = "2x"
+popup/item_4/text = "4x"
